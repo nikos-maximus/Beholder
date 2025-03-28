@@ -1,0 +1,181 @@
+
+////////////////////////////////////////////////////////////////////////////////
+// TODO - Next
+
+- imgui : See https://github.com/ocornut/imgui/wiki/Integrating-with-Vulkan#initialize
+	- "It's recommended to create a seperate VkDescriptorPool, VkRenderPass, VkCommandBuffer, and VkFramebuffer"
+
+- Create world light entity (bhLight?)
+
+- BBR
+	- https://www.youtube.com/watch?v=XK_p2MxGBQs
+
+- Use compressed textures
+	- https://www.khronos.org/ktx/
+	- https://www.binomial.info/
+	- https://themaister.net/blog/2021/08/29/compressed-gpu-texture-formats-a-review-and-compute-shader-decoders-part-3-3/
+
+- Avoid buffer mapping where possible
+	- Buffer -> mapped member
+
+- Render to texture (GL first)
+	- Use resizeable image window for world view in-editor
+	
+- Default assets to handle missing loading attempts
+
+- Create typedef bhFlag8_t bhFlag16_t etc. for BH_BIT
+
++ Vertex buffer size checks
+	+ Colored log output on console (red for errors etc.)
+		- That is Platform-specific functionality - should not use printf directly
+		- https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
+	+ Check + log error when uploading buffer data
+	- Check + log error when uploading instance data
+	+ Resume test with wall mesh (VK reports buffer errors for this, probably insufficient storage)
+	
+- Switch editor to full screen world render
+	- Make dungeon grid as overlay
+	
+	
+- Frame timing
+	- https://gafferongames.com/post/fix_your_timestep/
+	- https://gafferongames.com/post/integration_basics/
+	- https://raphlinus.github.io/ui/graphics/gpu/2021/10/22/swapchain-frame-pacing.html
+
+- Color buffer - based mouse selection
+	- Per - frame object IDs
+
+- Early-Z pass
+	- Render selection buffer
+	- Render world
+	- Use a single z-pre-pass for both frame buffer and color-pick buffer rendering. After z-buffer creation, both can run in parallel
+
+? Message queue for Game (read: postQuitMessage to close via editor etc.)
+
+- Update to the simplified light attenuation equation
+	- http://www.cemyuksel.com/research/pointlightattenuation/
+
+- Create engine light entity
+
+- Check this for Frustum Culling
+	- https://bruop.github.io/frustum_culling/
+	- https://bruop.github.io/improved_frustum_culling/
+
+- Fix warnings
+
+- Memory Allocation
+	- https://samwho.dev/memory-allocation/
+	- https://www.snellman.net/blog/archive/2016-12-13-ring-buffers/
+	- https://www.rfleury.com/p/untangling-lifetimes-the-arena-allocator
+	- https://www.gingerbill.org/series/memory-allocation-strategies/
+
+? Integrate Vulkan® Memory Allocator
+	- https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator
+
++ Normal mapping shader (normal map sampler is already available)
+
+? Check against SPIRV_MAGIC when loading shader binary
+
+- Need better error reporting for missing assets (for example not compiled spirv shaders)
+
+- Recheck v-sync logic (both APIs)
+
+- Config based input
+
+- Additional methods to bhMeshGen
+	- https://www.danielsieger.com/blog/2021/03/27/generating-spheres.html
+	- https://github.com/caosdoar/spheres/
+	- https://prideout.net/blog/octasphere/
+	- https://medium.com/@oscarsc/four-ways-to-create-a-mesh-for-a-sphere-d7956b825db4
+
+- Create a "limits" container for GPU caps retrieved on runtime for GL/VK
+	- Examples:
+		- GL_MAX_VERTEX_ATTRIBS
+		- Max samplers per pipeline
+		- Usage of VkMemoryHeap (VkPhysicalDeviceMemoryProperties)
+
+- Procedural maze/dungeon generation
+	- https://weblog.jamisbuck.org/2010/12/27/maze-generation-recursive-backtracking.html
+	- See mazes-for-programmers_p1_0 book in bhBase/resources
+	- https://github.com/mxgmn/WaveFunctionCollapse
+	- https://github.com/EmbarkStudios/texture-synthesis
+
+- Add Quadtree, Octree to toolbox
+	- https://lisyarus.github.io/blog/programming/2022/12/21/quadtrees.html
+	
+- Terrain / Heightfield / Tesselation
+	http://drivenbynostalgia.com/#tessellation
+
+- Bindless
+	- https://jorenjoestar.github.io/post/vulkan_bindless_texture/
+	- https://jorenjoestar.github.io/post/modern_sprite_batch/
+	
+- Format Casting
+	- https://wickedengine.net/2022/11/08/graphics-api-secrets-format-casting/
+	
+- Hashing
+	- https://notes.volution.ro/v1/2022/07/notes/1290a79c/
+
+- ECS
+	- https://www.flecs.dev/flecs/
+
+////////////////////////////////////////////////////////////////////////////////
+// TODO - Nice to have
+
+- Optimized power of integer
+	- https://stackoverflow.com/questions/1505675/power-of-an-integer-in-c
+	- https://stackoverflow.com/questions/101439/the-most-efficient-way-to-implement-an-integer-based-power-function-powint-int
+	- https://gist.github.com/orlp/3551590
+	
+- Texture staging buffer
+	1) Load texture from file
+	2) Create host mem API (staging) buffer (B)
+	3) Upload pixel data to buffer (B)
+	4) Clear RAM-direct texture data
+	5) Keep staging buffer for subsequent texture uploads
+	- GL: see glCopyTexSubImage2D (http://docs.gl/gl4/glCopyTexSubImage2D)
+
+- Winged-Edge Data Structure https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/model/winged-e.html
+
+- Work-stealing threading https://www.youtube.com/watch?v=iLHNF7SgVN4
+	- https://blog.molecular-matters.com/2015/08/24/job-system-2-0-lock-free-work-stealing-part-1-basics/
+
+- Deferred rendering https://learnopengl.com/Advanced-Lighting/Deferred-Shading
+
+- TilEd import
+
+- Line Rendering
+	- http://lines.rexwe.st/
+	- https://omar-shehata.medium.com/better-outline-rendering-using-surface-ids-with-webgl-e13cdab1fd94
+	- https://twitter.com/ianmaclarty/status/1499494878908403712
+
+////////////////////////////////////////////////////////////////////////////////
+// TODO - Wishlist
+
+- GL_EXT_fragment_shader_barycentric: Wireframe
+	- https://wunkolo.github.io/post/2022/07/gl_ext_fragment_shader_barycentric-wireframe/
+
+- Intersections
+	- https://tavianator.com/2022/ray_box_boundary.html
+
+- Normals visualization https://learnopengl.com/Advanced-OpenGL/Geometry-Shader
+
+- Add compression functions to codebase
+
+- Non 4-component textures should also work
+	- However this messes up alignments demanded by Vulkan. Needs some research
+
+- Color sequences (no similar adjacent colors)
+	- http://www.realtimerendering.com/blog/low-discrepancy-color-sequences/
+	- http://www.realtimerendering.com/blog/low-discrepancy-color-sequences-part-deux/
+
+////////////////////////////////////////////////////////////////////////////////
+// IDEAS
+	
+- Conway's game of life + marching cubes
+
+- Bezier Curves
+	- https://blog.richardekwonye.com/bezier-curves
+	
+- Grid Shader
+	- https://bgolus.medium.com/the-best-darn-grid-shader-yet-727f9278b9d8

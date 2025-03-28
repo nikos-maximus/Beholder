@@ -1,0 +1,19 @@
+# See https://scons.org/doc/production/HTML/scons-user/ch03s08.html for sharing common file paths among programs
+
+include_paths = [
+	'C:/lib/SDL/include',
+	'C:/lib/stb',
+	'./include'
+]
+
+libs = ['SDL3']
+
+lib_paths = ['C:/lib/SDL/VisualC/x64/Debug']
+
+src_files = Split('''
+	Game/eob_sdl_main.cpp
+	SDL/SurfaceSDL.cpp
+	bhLog.c
+''')
+
+Program(target = 'EoB_SDL', CPPPATH = include_paths, srcdir = 'src', source = src_files, LIBS = libs, LIBPATH = lib_paths)

@@ -1,0 +1,62 @@
+#include "SDL/SurfaceSDL.hpp"
+
+int main(int argc, char* argv[])
+{
+  int sdlErr = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
+  if (sdlErr < 0)
+  {
+    return sdlErr;
+  }
+
+  Uint32 wndFlags = SDL_WINDOW_HIDDEN;
+  SDL_Window* mainWnd = SDL_CreateWindow("EoB SDL", 800, 450, wndFlags);
+  if (mainWnd)
+  {
+    SDL_SetWindowPosition(mainWnd, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED); // TODO: Check return
+
+    Uint32 renderFlags = SDL_RENDERER_PRESENTVSYNC;
+    SDL_Renderer* renderer = SDL_CreateRenderer(mainWnd, nullptr, renderFlags);
+    auto err = SDL_GetError();
+    if (renderer)
+    {
+      SurfaceSDL wndSurf;
+      wndSurf.Create(mainWnd);
+
+      SurfaceSDL imgSurf;
+      imgSurf.Create("D:/Pictures/female-superhero-asterix-obelix.jpg");
+
+      imgSurf.BlitToSurface(wndSurf);
+
+      bool running = true;
+      SDL_ShowWindow(mainWnd);
+
+      while (running)
+      {
+        SDL_PumpEvents();
+        SDL_Event evt;
+        while (SDL_PollEvent(&evt))
+        {
+          switch (evt.type)
+          {
+            case SDL_EVENT_QUIT:
+            {
+              running = false;
+              break;
+            }
+            default:
+            {
+              break;
+            }
+          }
+        }
+        SDL_UpdateWindowSurface(mainWnd);
+      }
+
+      SDL_DestroyRenderer(renderer);
+    }
+    SDL_DestroyWindow(mainWnd);
+  }
+
+  SDL_Quit();
+  return 0;
+}

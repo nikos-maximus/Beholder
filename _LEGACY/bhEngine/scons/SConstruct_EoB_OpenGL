@@ -1,0 +1,9 @@
+# See https://scons.org/doc/production/HTML/scons-user/ch03s08.html for sharing common file paths among programs
+
+src_files = Split('''
+	C:/lib/gl3w/src/gl3w.c
+	Game/eob_gl_main.cpp
+	bhLog.c
+''')
+
+Program(target = 'EoB_OpenGL', srcdir = 'src', source = src_files)

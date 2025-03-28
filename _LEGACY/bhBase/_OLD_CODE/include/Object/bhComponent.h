@@ -1,0 +1,8 @@
+#pragma once
+#include "bhTransform.hpp"
+
+////////////////////////////////////////////////////////////////////////////////
+struct bhInstanceInfo
+{
+    bhTransform transform;
+};

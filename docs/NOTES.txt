@@ -1,0 +1,78 @@
+////////////////////////////////////////////////////////////////////////////////
+// Features
+
+- Resources
+	- https://floooh.github.io/2018/06/17/handles-vs-pointers.html
+	
+- Bindless
+	+ http://alextardif.com/Bindless.html
+	- https://mynameismjp.wordpress.com/2016/03/25/bindless-texturing-for-deferred-rendering-and-decals/
+	- https://jorenjoestar.github.io/post/vulkan_bindless_texture/
+	- "runtimeDescriptorArray"
+	
+- Z-Buffer
+	- https://zero-radiance.github.io/post/z-buffer/
+	
+- Animation
+	- https://medium.com/xrlo-extended-reality-lowdown/how-to-populate-real-time-worlds-with-thousands-of-animated-characters-55830e982c9c
+	- https://wickedengine.net/2017/09/09/skinning-in-compute-shader/
+	
+- Generating primitives
+	- https://www.danielsieger.com/blog/2021/05/03/generating-primitive-shapes.html
+	
+- Math
+	- https://projectivegeometricalgebra.org/
+	
+- Textures
+	- https://phoboslab.org/log/2021/11/qoi-fast-lossless-image-compression
+	
+- Virtual Textures
+	- https://www.youtube.com/watch?v=MejJL87yNgI
+	- https://silverspaceship.com/src/svt/
+	
+- Memory management
+	- https://www.rastergrid.com/blog/sw-eng/2021/03/custom-memory-allocators/
+	- https://github.com/mtrebi/memory-allocators
+	
+- Text
+	- https://jorenjoestar.github.io/post/gpu_driven_text/gpu_driven_text/
+	
+- ECS
+	- https://www.david-colson.com/2020/02/09/making-a-simple-ecs.html
+	
+////////////////////////////////////////////////////////////////////////////////
+// Design
+
++ 1 unit == 1 m
+	+ Bullet uses this size - will not require scaling. Unreal unit == 1 cm
+
++ Z axis is up
+	+ Unreal
+	+ Blender3D
+	+ x, y coordinates tend to change faster (image for terrain)
+
++ glsl / SPIR-V shader file extensions
+	frag
+	vert
+	geom
+
+////////////////////////////////////////////////////////////////////////////////
+// External Libraries
+
+- Use glm exclusively where compilation scope allows C++
+	- Trim dowm the bhMath implementation for C - only!
+
+- Note on imgui usage
+	- Had to tweak imgui vulkan sources (imgui_impl_vulkan.h/cpp) to cooperate with volk
+		See https://github.com/kennyalive/vulkan-base/commit/65113bfffffb317b8c355b7abd13bf3ad361e03b
+
+////////////////////////////////////////////////////////////////////////////////
+// C++ Usage
+
+- use offsetof() https://en.cppreference.com/w/c/types/offsetof
+
+- typename http://pages.cs.wisc.edu/~driscoll/typename.html
+
+- idSoftware coding style conventions doc in bhBase/reference
+
+- use of const (prefix!!)

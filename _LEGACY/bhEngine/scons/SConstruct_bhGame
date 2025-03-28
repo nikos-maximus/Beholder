@@ -1,0 +1,41 @@
+# See https://scons.org/doc/production/HTML/scons-user/ch03s08.html for sharing common file paths among programs
+
+import os # Import external env
+
+env = Environment()
+
+libDir = env.subst(os.environ['THIRDPARTYLIB'])
+
+include_paths = [
+	# libDir + '/cgltf',
+	# libDir + '/dirent/include',
+	libDir + '/glm',
+	libDir + '/imgui',
+	libDir + '/SDL/include',
+	# libDir + '/stb',
+	# libDir + '/tinyxml2',
+	# libDir + '/volk',
+	# libDir + '/VulkanMemoryAllocator/include',
+	# 'C:/VulkanSDK/1.3.275.0/Include',
+	'../include'
+]
+
+libs = [
+	'SDL3',
+	'bhEngine'
+]
+
+lib_paths = [
+	'C:/lib/SDL/VisualC/x64/Debug',
+	'C:/Projects/bhEngine/bin'
+]
+
+src_files = Split('''
+	C:/lib/imgui/backends/imgui_impl_sdl3.cpp
+	C:/lib/imgui/imgui_demo.cpp
+	Game/bhGame.cpp
+	Game/game_main.cpp
+''')
+
+bhGameProg = Program(target = 'bhGame', CPPPATH = include_paths, srcdir = '../src', source = src_files, LIBS = libs, LIBPATH = lib_paths)
+# TODO: Depends(bhGameProg, bhEngineLib)

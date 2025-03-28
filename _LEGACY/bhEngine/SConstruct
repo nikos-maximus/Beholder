@@ -1,0 +1,5 @@
+
+bhEngine = SConscript('scons/SConstruct_bhEngine', variant_dir = 'bin')
+bhGame = SConscript('scons/SConstruct_bhGame', variant_dir = 'bin')
+
+Depends(bhGame, bhEngine)
