@@ -1,19 +1,30 @@
-#include <vector>
-#include <Windows.h>
-#include <ShObjIdl.h>
-#include <Shlwapi.h>
-#include "bhDefines.h"
-#include "Platform/bhPlatform.hpp"
+#include <SDL3/SDL.h>
+//#include <vector>
+//#include <Windows.h>
+//#include <ShObjIdl.h>
+//#include <Shlwapi.h>
+//#include "bhDefines.h"
+#include "bhPlatform.hpp"
 
 namespace bhPlatform
 {
+  const char* GetExecutableDir()
+  {
+    return SDL_GetBasePath();
+  }
+
+  constexpr const char* GetDirSeparator()
+  {
+  #if SDL_PLATFORM_WINDOWS
+    return "\\";
+  #else
+    return "/";
+  #endif
+  }
+
+#if _OLD
   static const char* g_executablePath = nullptr;
   static char* g_dataPath = nullptr;
-
-  const char* GetDirSeparator()
-  {
-    return "\\";
-  }
 
   const char* Lpwstr2Str(const LPWSTR inStr)
   {
@@ -272,4 +283,5 @@ namespace bhPlatform
   {
     return CreateNativeFileDialog(true, getFullPath);
   }
+#endif //_OLD
 }

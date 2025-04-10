@@ -3,7 +3,7 @@
 
 namespace bhPlatform
 {
-  enum ResourceType
+  enum class ResourceType
   {
     RT_TEXTURE,
     RT_SHADER_SRC,
@@ -22,7 +22,7 @@ namespace bhPlatform
 
   bool Init();
   void Destroy();
-  const char* GetDirSeparator();
+  constexpr const char* GetDirSeparator();
   const char* CreateOpenFileDialog(bool getFullPath);
   const char* CreateSaveFileDialog(bool getFullPath);
   const char* GetExecutableDir();
@@ -37,4 +37,4 @@ namespace bhPlatform
   void FreePath(const char*& path);
 }
 
-#endif //BH_PLATFORM_H
+#endif //BH_PLATFORM_HPP

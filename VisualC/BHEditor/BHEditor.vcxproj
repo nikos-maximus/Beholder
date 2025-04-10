@@ -76,7 +76,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(THIRDPARTYLIB)\SDL\include;$(THIRDPARTYLIB)\imgui;$(SolutionDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(THIRDPARTYLIB)\SDL\include;$(THIRDPARTYLIB)\stb;$(THIRDPARTYLIB)\imgui;$(SolutionDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -91,7 +91,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(THIRDPARTYLIB)\SDL\include;$(THIRDPARTYLIB)\imgui;$(SolutionDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(THIRDPARTYLIB)\SDL\include;$(THIRDPARTYLIB)\stb;$(THIRDPARTYLIB)\imgui;$(SolutionDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -106,7 +106,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(THIRDPARTYLIB)\SDL\include;$(THIRDPARTYLIB)\imgui;$(SolutionDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(THIRDPARTYLIB)\SDL\include;$(THIRDPARTYLIB)\stb;$(THIRDPARTYLIB)\imgui;$(SolutionDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -122,7 +122,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(THIRDPARTYLIB)\SDL\include;$(THIRDPARTYLIB)\imgui;$(SolutionDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(THIRDPARTYLIB)\SDL\include;$(THIRDPARTYLIB)\stb;$(THIRDPARTYLIB)\imgui;$(SolutionDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -141,9 +141,22 @@
     <ClCompile Include="..\..\..\..\lib\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\..\src\bhEditor.cpp" />
     <ClCompile Include="..\..\src\bhEditorMain.cpp" />
+    <ClCompile Include="..\..\src\bhImage.cpp" />
+    <ClCompile Include="..\..\src\bhImage_Impl.cpp" />
+    <ClCompile Include="..\..\src\bhMap.cpp" />
+    <ClCompile Include="..\..\src\bhMapRendererSDL3.cpp" />
+    <ClCompile Include="..\..\src\bhMathUtil.cpp" />
+    <ClCompile Include="..\..\src\bhMapRenderer.cpp" />
+    <ClCompile Include="..\..\src\bhPlatform.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\bhEditor.hpp" />
+    <ClInclude Include="..\..\include\bhImage.hpp" />
+    <ClInclude Include="..\..\include\bhMapRendererSDL3.hpp" />
+    <ClInclude Include="..\..\include\bhMathUtil.hpp" />
+    <ClInclude Include="..\..\include\bhMap.hpp" />
+    <ClInclude Include="..\..\include\bhMapRenderer.hpp" />
+    <ClInclude Include="..\..\include\bhPlatform.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
