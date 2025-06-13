@@ -2,11 +2,15 @@
 #include <backends/imgui_impl_sdl3.h>
 #include <backends/imgui_impl_sdlrenderer3.h>
 #include "bhEditor.hpp"
+#include "bhMap.hpp"
+#include "bhMapRendererSDL3.hpp"
 
 namespace bhEditor
 {
-  static int g_running = 1;
-  static bool DEBUG_showImGuiDemo = false;
+  static int g_running{ 1 };
+  bhMap* g_map{ nullptr };
+  bhMapRendererSDL3* g_mapRenderer{ nullptr };
+  static bool DEBUG_showImGuiDemo{ false };
 
   SDL_PropertiesID CreateProperties()
   {
@@ -97,12 +101,20 @@ namespace bhEditor
     }
   }
 
+  void DisplayMap()
+  {
+    const SDL_Texture* texture = g_mapRenderer->GetTexture();
+    ImGui::Begin("SDL_Renderer Texture Test");
+    ImGui::Text("pointer = %p", texture);
+    ImGui::Text("size = %d x %d", texture->w, texture->h);
+    ImGui::Image((ImTextureID)(intptr_t)texture, ImVec2((float)texture->w, (float)texture->h));
+    ImGui::End();
+  }
+
   int Run()
   {
     if (SDL_Init(SDL_INIT_VIDEO))
     {
-      int window_Width = 800, window_Height = 600;
-
       SDL_PropertiesID props = CreateProperties();
       if (props)
       {
@@ -110,58 +122,72 @@ namespace bhEditor
         mainWindow = SDL_CreateWindowWithProperties(props);
         if (mainWindow)
         {
-          SDL_Renderer* renderer = SDL_CreateRenderer(mainWindow, nullptr);
-          if (renderer)
+          SDL_Renderer* sdlRenderer = SDL_CreateRenderer(mainWindow, nullptr);
+          if (sdlRenderer)
           {
             ImGuiContext* ctx = ImGui::CreateContext();
             ImGui::SetCurrentContext(ctx);
 
-            ImGui_ImplSDL3_InitForSDLRenderer(mainWindow, renderer);
-            ImGui_ImplSDLRenderer3_Init(renderer);
-            SDL_ShowWindow(mainWindow);
+            g_map = new bhMap(16, 16);
+            g_mapRenderer = new bhMapRendererSDL3(sdlRenderer);
+            g_mapRenderer->Reset(g_map);
+            g_mapRenderer->Init(); // TODO: Error check
+            
 
-            SDL_Event evt;
-            while (g_running)
+            if (ImGui_ImplSDL3_InitForSDLRenderer(mainWindow, sdlRenderer))
             {
-              while (SDL_PollEvent(&evt))
+              if (ImGui_ImplSDLRenderer3_Init(sdlRenderer))
               {
-                ImGui_ImplSDL3_ProcessEvent(&evt);
-                if (evt.type == SDL_EVENT_QUIT)
+                SDL_ShowWindow(mainWindow);
+
+                SDL_Event evt;
+                while (g_running)
                 {
-                  g_running = 0;
+                  while (SDL_PollEvent(&evt))
+                  {
+                    ImGui_ImplSDL3_ProcessEvent(&evt);
+                    if (evt.type == SDL_EVENT_QUIT)
+                    {
+                      g_running = 0;
+                    }
+                  }
+
+                  SDL_RenderClear(sdlRenderer);
+
+                  ImGui_ImplSDL3_NewFrame();
+                  ImGui_ImplSDLRenderer3_NewFrame();
+                  ImGui::NewFrame();
+
+                  DisplayMenu();
+                  DisplayMap();
+
+                  if (DEBUG_showImGuiDemo) ImGui::ShowDemoWindow(&DEBUG_showImGuiDemo);
+
+                  ImGui::Render();
+                  ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), sdlRenderer);
+
+                  //SDL_Surface* wndSurface = SDL_GetWindowSurface(mainWindow);
+                  //SDL_assert(wndSurface != NULL);
+                  //if (SDL_MUSTLOCK(wndSurface))
+                  //{
+                  //  SDL_LockSurface(wndSurface);
+                  //}
+                  //if (SDL_MUSTLOCK(wndSurface))
+                  //{
+                  //  SDL_UnlockSurface(wndSurface);
+                  //}
+                  //SDL_UpdateWindowSurface(mainWindow);
+
+                  SDL_RenderPresent(sdlRenderer);
                 }
+
+                ImGui_ImplSDL3_Shutdown();
               }
-
-              SDL_RenderClear(renderer);
-
-              ImGui_ImplSDL3_NewFrame();
-              ImGui_ImplSDLRenderer3_NewFrame();
-              ImGui::NewFrame();
-
-              DisplayMenu();
-
-              if (DEBUG_showImGuiDemo) ImGui::ShowDemoWindow(&DEBUG_showImGuiDemo);
-
-              ImGui::Render();
-              ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
-
-              //SDL_Surface* wndSurface = SDL_GetWindowSurface(mainWindow);
-              //SDL_assert(wndSurface != NULL);
-              //if (SDL_MUSTLOCK(wndSurface))
-              //{
-              //  SDL_LockSurface(wndSurface);
-              //}
-              //if (SDL_MUSTLOCK(wndSurface))
-              //{
-              //  SDL_UnlockSurface(wndSurface);
-              //}
-              //SDL_UpdateWindowSurface(mainWindow);
-
-              SDL_RenderPresent(renderer);
             }
 
-            ImGui_ImplSDL3_Shutdown();
-            SDL_DestroyRenderer(renderer);
+            delete g_mapRenderer;
+            delete g_map;
+            SDL_DestroyRenderer(sdlRenderer);
           }
           SDL_DestroyWindow(mainWindow);
         }

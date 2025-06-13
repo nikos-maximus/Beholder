@@ -2,7 +2,8 @@
 #define BH_WORLD_HPP
 
 #include <inttypes.h>
-#include "bhMapRenderer.hpp"
+#include "bhDefines.hpp"
+//#include "bhMapRenderer.hpp"
 
 class bhMap
 {
@@ -11,16 +12,19 @@ public:
   class Block
   {
   public:
+    bool Solid() const { return !(flags & BH_BIT(0)); } //Solid if rightmost bit is 0
+
   protected:
   private:
+    uint8_t flags{ 0 };
   };
 
   bhMap() = delete;
   bhMap(uint8_t _xsiz, uint8_t _ysiz);
   ~bhMap();
 
+  void GetDims(uint8_t& x, uint8_t& y) const { x = xsiz; y = ysiz; }
   const Block* GetBlock(uint8_t x, uint8_t y) const;
-  void DrawLayout(bhMapRenderer* renderer);
 
 protected:
 private:

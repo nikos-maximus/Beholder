@@ -148,8 +148,10 @@
     <ClCompile Include="..\..\src\bhMathUtil.cpp" />
     <ClCompile Include="..\..\src\bhMapRenderer.cpp" />
     <ClCompile Include="..\..\src\bhPlatform.cpp" />
+    <ClCompile Include="..\..\src\bhSDL3.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\bhDefines.hpp" />
     <ClInclude Include="..\..\include\bhEditor.hpp" />
     <ClInclude Include="..\..\include\bhImage.hpp" />
     <ClInclude Include="..\..\include\bhMapRendererSDL3.hpp" />
@@ -157,6 +159,7 @@
     <ClInclude Include="..\..\include\bhMap.hpp" />
     <ClInclude Include="..\..\include\bhMapRenderer.hpp" />
     <ClInclude Include="..\..\include\bhPlatform.hpp" />
+    <ClInclude Include="..\..\include\bhSDL3.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

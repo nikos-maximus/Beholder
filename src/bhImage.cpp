@@ -82,6 +82,13 @@ bhImage* bhImage::CreateFromFile(const char* filePath, int reqComponents)
   return img;
 }
 
+void bhImage::Destroy(bhImage*& img)
+{
+  img->Free();
+  delete img;
+  img = nullptr;
+}
+
 bool bhImage::IsValidForMipmap() const
 {
   // Assumptions:
