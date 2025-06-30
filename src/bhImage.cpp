@@ -40,7 +40,7 @@ void bhImage::Free()
 
 bhImage* bhImage::CreateEmpty(int w, int h, int numComponents)
 {
-  bhImage* img = (bhImage*)calloc(1, sizeof(bhImage));
+  bhImage* img = new bhImage();
   if (img == nullptr)
   {
     return nullptr;
@@ -52,7 +52,7 @@ bhImage* bhImage::CreateEmpty(int w, int h, int numComponents)
   img->pixels = (stbi_uc*)calloc(w * h, img->numComponents);
   if (img->pixels == nullptr)
   {
-    free(img);
+    delete img;
     img = nullptr;
   }
   return img;
@@ -62,13 +62,13 @@ bhImage* bhImage::CreateFromFile(const char* filePath, int reqComponents)
 {
   assert((0 <= reqComponents) && (reqComponents <= STBI_rgb_alpha));
 
-  bhImage* img = (bhImage*)calloc(1, sizeof(bhImage));
+  bhImage* img = new bhImage();
   if (img)
   {
     img->pixels = stbi_load(filePath, &(img->width), &(img->height), &(img->numComponents), reqComponents);
     if (img->pixels == nullptr)
     {
-      free(img);
+      delete img;
       SDL_LogMessage(SDL_LogCategory::SDL_LOG_CATEGORY_APPLICATION, SDL_LogPriority::SDL_LOG_PRIORITY_ERROR, "Could not load image %s", filePath);
       return nullptr;
     }
