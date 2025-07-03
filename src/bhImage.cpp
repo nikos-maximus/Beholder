@@ -99,11 +99,11 @@ bool bhImage::IsValidForMipmap() const
   {
     case 1:
     {
-      return bhMath_IsPowerOf2(width);
+      return bhMath::IsPowerOf2(width);
     }
     case 2:
     {
-      return bhMath_IsPowerOf2(width) && bhMath_IsPowerOf2(height) && (width == height);
+      return bhMath::IsPowerOf2(width) && bhMath::IsPowerOf2(height) && (width == height);
     }
     case 3:
     default:

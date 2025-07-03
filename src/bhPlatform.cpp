@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <SDL3/SDL.h>
 #include "bhPlatform.hpp"
+#include "bhUtil.hpp"
 
 #define DATA_DIR_NAME "Data"
 
@@ -77,6 +78,24 @@ namespace bhPlatform
     return cfp;
   }
 
+  bool SetDataDir(const char* path)
+  {
+    bool needsPostfix = !bhUtil::EndsWith(path, GetDirSeparator());
+    size_t len = strlen(path) + (needsPostfix ? strlen(GetDirSeparator()) : 0) + 1;
+    char* newDataDir = new char[len];
+    sprintf_s(newDataDir, len, "%s%s", path, needsPostfix ? GetDirSeparator() : "");
+    if (CheckDirectoryExists(newDataDir))
+    {
+      delete[] g_dataDir;
+      g_dataDir = new char[len];
+      strncpy_s(g_dataDir, len, newDataDir, len);
+      delete[] newDataDir;
+      return true;
+    }
+    delete[] newDataDir;
+    return false;
+  }
+
   const char* GetDataDir()
   {
     if (!g_dataDir)
@@ -113,6 +132,16 @@ namespace bhPlatform
     char* newPath = new char[len];
     sprintf_s(newPath, len, "%s%s", resourceDir, fileName);
     return newPath;
+  }
+
+  bool CheckDirectoryExists(const char* path)
+  {
+    struct stat fileInfo = {};
+    if (stat(path, &fileInfo) == 0) // Success
+    {
+      return bool(fileInfo.st_mode & S_IFDIR);
+    }
+    return false;
   }
 }
 

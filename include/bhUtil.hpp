@@ -11,22 +11,6 @@ namespace bhUtil
     o1 = tmp;
   }
 
-  template<typename Scalar_t>
-  inline Scalar_t Min(Scalar_t a, Scalar_t b)
-  {
-    if (a < b)
-      return a;
-    return b;
-  }
-
-  template<typename Scalar_t>
-  inline Scalar_t Max(Scalar_t a, Scalar_t b)
-  {
-    if (a > b)
-      return a;
-    return b;
-  }
-
   const char* GetFileExtension(char const* fileName);
   // extensions is a null-terminated array of c-strings
   // containing file extensions without the '.' e.g. { "jpg", "png" }
@@ -35,10 +19,11 @@ namespace bhUtil
   void FreeFileData(void*& fd);
   void* AlignedAlloc(size_t size, size_t alignment);
   void AlignedFree(void* data);
+  bool StartsWith(const char* str, const char* testStr);
+  bool EndsWith(const char* str, const char* testStr);
 
   //uint8_t CountBits(uint32_t val);
   //int bhUtil_CheckFileExists(const char* path); // 0 on success
-  //int bhUtil_CheckDirectoryExists(const char* path); // 0 on success
 }
 
 #endif //BH_UTIL_HPP

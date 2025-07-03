@@ -3,7 +3,7 @@
 #include <string.h>
 #include <SDL3/SDL_assert.h>
 #include "bhUtil.hpp"
-#include "bhLog.h"
+#include "bhLog.hpp"
 
 // See ref. https://graphics.stanford.edu/~seander/bithacks.html
 
@@ -55,7 +55,7 @@ namespace bhUtil
     if (err)
     {
       // TODO: Report error
-      bhLog_Message(LP_ERROR, "Could not open file %s for reading", filePath);
+      bhLog::Message(bhLog::LOG_CATEGORY_APPLICATION, bhLog::LOG_PRIORITY_ERROR, "Could not open file %s for reading", filePath);
       return {};
     }
     SDL_assert(file); // If the above check passes, this should never fail
@@ -104,6 +104,36 @@ namespace bhUtil
   #endif
   }
 
+  bool StartsWith(const char* str, const char* testStr)
+  {
+    size_t strSiz = strlen(str);
+    size_t testStrSiz = strlen(testStr);
+
+    if (strSiz < testStrSiz) return false;
+    while (testStrSiz)
+    {
+      if (*str++ != *testStr++) return false;
+      --testStrSiz;
+    }
+    return true;
+  }
+
+  bool EndsWith(const char* str, const char* testStr)
+  {
+    size_t strSiz = strlen(str);
+    size_t testStrSiz = strlen(testStr);
+
+    if (strSiz < testStrSiz) return false;
+    const char* strTmp = str + strSiz - 1;
+    const char* testStrTmp = testStr + testStrSiz - 1;
+    while (testStrSiz)
+    {
+      if (*strTmp-- != *testStrTmp--) return false;
+      --testStrSiz;
+    }
+    return true;
+  }
+
   //uint8_t CountBits(uint32_t val)
   //{
   //	uint8_t numBits = 0;
@@ -122,15 +152,5 @@ namespace bhUtil
   //{
   //	struct stat fileInfo = {};
   //	return stat(path, &fileInfo);
-  //}
-
-  //int CheckDirectoryExists(const char* path)
-  //{
-  //	struct stat fileInfo = {};
-  //	if (stat(path, &fileInfo) == 0) // Success
-  //	{
-  //		return (int)!(fileInfo.st_mode & S_IFDIR);
-  //	}
-  //	return 1;
   //}
 }

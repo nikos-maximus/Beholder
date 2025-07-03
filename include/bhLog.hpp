@@ -3,20 +3,40 @@
 
 #define BH_LOG_MESSAGE_SIZ 1024 << 1
 
-typedef enum bhLogPriority //Matching SDL_LogPriority, see: SDL_log.h
+namespace bhLog
 {
-  //LP_INVALID,
-  //LP_TRACE,
-  LP_VERBOSE = 2,
-  LP_DEBUG,
-  LP_INFO,
-  LP_WARN,
-  LP_ERROR,
-  LP_CRITICAL,
+  enum Category // See SDL_LogCategory, SDL_log.h
+  {
+    LOG_CATEGORY_APPLICATION,
+    LOG_CATEGORY_ERROR,
+    LOG_CATEGORY_ASSERT,
+    LOG_CATEGORY_SYSTEM,
+    LOG_CATEGORY_AUDIO,
+    LOG_CATEGORY_VIDEO,
+    LOG_CATEGORY_RENDER,
+    LOG_CATEGORY_INPUT,
+    LOG_CATEGORY_TEST,
+    LOG_CATEGORY_GPU,
 
-  LOG_NUM_PRIORITIES
-};
+    LOG_NUM_CATEGORIES
+  };
 
-void bhLog_Message(int category, bhLogPriority type, const char* format, ...);
+  enum Priority // See SDL_LogPriority, SDL_log.h
+  {
+    LOG_PRIORITY_INVALID,
+    LOG_PRIORITY_TRACE,
+    LOG_PRIORITY_VERBOSE,
+    LOG_PRIORITY_DEBUG,
+    LOG_PRIORITY_INFO,
+    LOG_PRIORITY_WARN,
+    LOG_PRIORITY_ERROR,
+    LOG_PRIORITY_CRITICAL,
+    LOG_PRIORITY_COUNT,
+
+    LOG_NUM_PRIORITIES
+  };
+
+  void Message(Category c, Priority p, const char* format, ...);
+}
 
 #endif //BH_LOG_HPP
