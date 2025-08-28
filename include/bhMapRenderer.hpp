@@ -18,6 +18,8 @@ public:
 
   void DrawLayout(const bhMap* map);
 
+  void DrawWidget(bhMap* map);
+
   const SDL_Texture* GetTexture() const { return texture; }
 
 protected:

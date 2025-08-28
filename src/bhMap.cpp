@@ -17,3 +17,9 @@ const bhMap::Block* bhMap::GetBlock(uint8_t x, uint8_t y) const
   SDL_assert((x < xsiz) && (y < ysiz));
   return &(blocks[y * xsiz + x]);
 }
+
+bhMap::Block* bhMap::GetBlock(uint8_t x, uint8_t y)
+{
+  SDL_assert((x < xsiz) && (y < ysiz));
+  return &(blocks[y * xsiz + x]);
+}

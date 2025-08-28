@@ -13,6 +13,7 @@ public:
   {
   public:
     bool Solid() const { return !(flags & BH_BIT(0)); } //Solid if rightmost bit is 0
+    void ToggleSolid() { flags & BH_BIT(0) ? (flags &= ~BH_BIT(0)) : (flags |= BH_BIT(0)); }
 
   protected:
   private:
@@ -25,6 +26,7 @@ public:
 
   void GetDims(uint8_t& x, uint8_t& y) const { x = xsiz; y = ysiz; }
   const Block* GetBlock(uint8_t x, uint8_t y) const;
+  Block* GetBlock(uint8_t x, uint8_t y);
 
 protected:
 private:

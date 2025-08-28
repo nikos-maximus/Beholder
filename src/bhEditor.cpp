@@ -103,18 +103,7 @@ namespace bhEditor
 
   void DisplayMap()
   {
-    const SDL_Texture* texture = g_mapRenderer->GetTexture();
-    ImGui::Begin("SDL_Renderer Texture Test");
-    ImGui::Text("pointer = %p", texture);
-    ImGui::Text("size = %d x %d", texture->w, texture->h);
-    ImGui::Image((ImTextureID)(intptr_t)texture, ImVec2((float)texture->w, (float)texture->h));
-    if (ImGui::IsItemHovered())
-    {
-        ImVec2 mp = ImGui::GetMousePos();
-        SDL_Log("Mouse coords %f %f\n", mp.x, mp.y);
-    }
-
-    ImGui::End();
+    g_mapRenderer->DrawWidget(g_map);
   }
 
   int Run()
