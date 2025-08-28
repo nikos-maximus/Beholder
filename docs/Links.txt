@@ -1,4 +1,12 @@
 
 Captive rendering
+	https://captive.atari.org/Technical/ViewRendering/ViewRendering.php
 
-https://captive.atari.org/Technical/ViewRendering/ViewRendering.php
+Atlas Generator (textures)
+	https://dungeoncrawlers.org/tools/atlas_generator/
+	https://dungeoncrawlers.org/resources/gamedev/
+	
+The All-Seeing Eye is a treasure of info on Beholder
+	https://ase.zorbus.net/
+	https://ase3.zorbus.net/
+	
