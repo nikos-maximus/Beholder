@@ -5,8 +5,7 @@
 #include "bhSDL3.hpp"
 
 bhMapRendererSDL3::bhMapRendererSDL3(SDL_Renderer* _renderer)
-  : bhMapRenderer()
-  , renderer(_renderer)
+  : renderer(_renderer)
 {}
 
 bool bhMapRendererSDL3::Init()

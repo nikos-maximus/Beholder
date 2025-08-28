@@ -2,18 +2,17 @@
 #define BH_WORLD_RENDERER_SDL3_HPP
 
 #include <SDL3/SDL.h> // TODO: Reduce this to necessary
-#include "bhMapRenderer.hpp"
 
 class bhMap;
 
-class bhMapRendererSDL3 : public bhMapRenderer
+class bhMapRendererSDL3
 {
 public:
   bhMapRendererSDL3() = delete;
   bhMapRendererSDL3(SDL_Renderer* _renderer);
   ~bhMapRendererSDL3();
 
-  bool Init() override final;
+  bool Init();
   bool Reset(const bhMap* map);
   //void DrawGridFloor() const override;
 
