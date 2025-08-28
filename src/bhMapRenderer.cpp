@@ -4,7 +4,7 @@
 #include "bhPlatform.hpp"
 #include "bhSDL3.hpp"
 
-static const int TILE_SZ_PX{ 24 };
+static const int TILE_SZ_PX{ 16 };
 
 bhMapRenderer::bhMapRenderer(SDL_Renderer* _renderer)
   : renderer(_renderer)
