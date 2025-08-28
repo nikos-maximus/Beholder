@@ -5,12 +5,12 @@
 
 class bhMap;
 
-class bhMapRendererSDL3
+class bhMapRenderer
 {
 public:
-  bhMapRendererSDL3() = delete;
-  bhMapRendererSDL3(SDL_Renderer* _renderer);
-  ~bhMapRendererSDL3();
+  bhMapRenderer() = delete;
+  bhMapRenderer(SDL_Renderer* _renderer);
+  ~bhMapRenderer();
 
   bool Init();
   bool Reset(const bhMap* map);

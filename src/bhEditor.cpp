@@ -3,13 +3,13 @@
 #include <backends/imgui_impl_sdlrenderer3.h>
 #include "bhEditor.hpp"
 #include "bhMap.hpp"
-#include "bhMapRendererSDL3.hpp"
+#include "bhMapRenderer.hpp"
 
 namespace bhEditor
 {
   static int g_running{ 1 };
   bhMap* g_map{ nullptr };
-  bhMapRendererSDL3* g_mapRenderer{ nullptr };
+  bhMapRenderer* g_mapRenderer{ nullptr };
   static bool DEBUG_showImGuiDemo{ false };
 
   SDL_PropertiesID CreateProperties()
@@ -19,9 +19,9 @@ namespace bhEditor
     {
       SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_BORDERLESS_BOOLEAN, false);
       SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, false);
-      SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, 450);
+      SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, 720);
       SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HIDDEN_BOOLEAN, true);
-      SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, 800);
+      SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, 1280);
       SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, SDL_WINDOWPOS_CENTERED);
       SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, SDL_WINDOWPOS_CENTERED);
     }
@@ -129,7 +129,7 @@ namespace bhEditor
             ImGui::SetCurrentContext(ctx);
 
             g_map = new bhMap(16, 16);
-            g_mapRenderer = new bhMapRendererSDL3(sdlRenderer);
+            g_mapRenderer = new bhMapRenderer(sdlRenderer);
             g_mapRenderer->Reset(g_map);
             g_mapRenderer->Init(); // TODO: Error check
             

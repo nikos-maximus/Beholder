@@ -1,14 +1,16 @@
-#include "bhMapRendererSDL3.hpp"
+#include "bhMapRenderer.hpp"
 #include "bhMap.hpp"
 #include "bhImage.hpp"
 #include "bhPlatform.hpp"
 #include "bhSDL3.hpp"
 
-bhMapRendererSDL3::bhMapRendererSDL3(SDL_Renderer* _renderer)
+static const int TILE_SZ_PX{ 24 };
+
+bhMapRenderer::bhMapRenderer(SDL_Renderer* _renderer)
   : renderer(_renderer)
 {}
 
-bool bhMapRendererSDL3::Init()
+bool bhMapRenderer::Init()
 {
   //SDL_Surface* tileSurface = nullptr;
 
@@ -33,7 +35,7 @@ bool bhMapRendererSDL3::Init()
   return true;
 }
 
-bool bhMapRendererSDL3::Reset(const bhMap* map)
+bool bhMapRenderer::Reset(const bhMap* map)
 {
   map->GetDims(xsiz, ysiz);
 
@@ -44,12 +46,12 @@ bool bhMapRendererSDL3::Reset(const bhMap* map)
   return false;
 }
 
-bhMapRendererSDL3::~bhMapRendererSDL3()
+bhMapRenderer::~bhMapRenderer()
 {
   Clear();
 }
 
-void bhMapRendererSDL3::DrawLayout(const bhMap* map)
+void bhMapRenderer::DrawLayout(const bhMap* map)
 {
   for (uint8_t y = 0; y < ysiz; ++y)
   {
@@ -64,7 +66,7 @@ void bhMapRendererSDL3::DrawLayout(const bhMap* map)
   }
 }
 
-void bhMapRendererSDL3::Clear()
+void bhMapRenderer::Clear()
 {
   for (uint8_t s = 0; s < NUM_TILE_IDX; ++s)
   {

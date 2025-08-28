@@ -149,9 +149,8 @@
     <ClCompile Include="..\..\src\bhImage_Impl.cpp" />
     <ClCompile Include="..\..\src\bhLog.cpp" />
     <ClCompile Include="..\..\src\bhMap.cpp" />
-    <ClCompile Include="..\..\src\bhMapRendererSDL3.cpp" />
-    <ClCompile Include="..\..\src\bhMathUtil.cpp" />
     <ClCompile Include="..\..\src\bhMapRenderer.cpp" />
+    <ClCompile Include="..\..\src\bhMathUtil.cpp" />
     <ClCompile Include="..\..\src\bhPlatform.cpp" />
     <ClCompile Include="..\..\src\bhSDL3.cpp" />
     <ClCompile Include="..\..\src\bhUtil.cpp" />
@@ -161,10 +160,9 @@
     <ClInclude Include="..\..\include\bhEditor.hpp" />
     <ClInclude Include="..\..\include\bhImage.hpp" />
     <ClInclude Include="..\..\include\bhLog.hpp" />
-    <ClInclude Include="..\..\include\bhMapRendererSDL3.hpp" />
+    <ClInclude Include="..\..\include\bhMapRenderer.hpp" />
     <ClInclude Include="..\..\include\bhMathUtil.hpp" />
     <ClInclude Include="..\..\include\bhMap.hpp" />
-    <ClInclude Include="..\..\include\bhMapRenderer.hpp" />
     <ClInclude Include="..\..\include\bhPlatform.hpp" />
     <ClInclude Include="..\..\include\bhSDL3.hpp" />
     <ClInclude Include="..\..\include\bhUtil.hpp" />
