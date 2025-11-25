@@ -127,7 +127,7 @@ namespace bhEditor
             g_mapRenderer = new bhMapRenderer(sdlRenderer);
             g_mapRenderer->Reset(g_map);
             g_mapRenderer->Init(); // TODO: Error check
-            
+
 
             if (ImGui_ImplSDL3_InitForSDLRenderer(mainWindow, sdlRenderer))
             {
@@ -188,6 +188,7 @@ namespace bhEditor
         }
         DestroyProperties(props);
       }
+      SDL_Quit();
     }
     return 0;
   }

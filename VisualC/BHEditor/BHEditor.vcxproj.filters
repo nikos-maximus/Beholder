@@ -18,7 +18,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\bhEditorMain.cpp">
+    <ClCompile Include="..\..\src\bhMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\lib\imgui\backends\imgui_impl_sdlrenderer3.cpp">

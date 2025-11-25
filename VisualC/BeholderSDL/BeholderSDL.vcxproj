@@ -139,13 +139,11 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\bhConfig.cpp" />
     <ClCompile Include="..\..\src\bhRay.cpp" />
-    <ClCompile Include="..\..\src\bhSDL.cpp" />
     <ClCompile Include="..\..\src\mainSDL.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\bhConfig.hpp" />
     <ClInclude Include="..\..\include\bhRay.hpp" />
-    <ClInclude Include="..\..\include\bhSDL.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

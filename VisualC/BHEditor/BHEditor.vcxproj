@@ -80,7 +80,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(THIRDPARTYLIB)\SDL\include;$(THIRDPARTYLIB)\stb;$(THIRDPARTYLIB)\imgui;$(SolutionDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\volk;$(THIRDPARTYLIB)\stb;$(THIRDPARTYLIB)\imgui;$(SolutionDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -95,7 +95,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(THIRDPARTYLIB)\SDL\include;$(THIRDPARTYLIB)\stb;$(THIRDPARTYLIB)\imgui;$(SolutionDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\volk;$(THIRDPARTYLIB)\stb;$(THIRDPARTYLIB)\imgui;$(SolutionDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -110,7 +110,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(THIRDPARTYLIB)\SDL\include;$(THIRDPARTYLIB)\stb;$(THIRDPARTYLIB)\imgui;$(SolutionDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\volk;$(THIRDPARTYLIB)\stb;$(THIRDPARTYLIB)\imgui;$(SolutionDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -126,7 +126,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(THIRDPARTYLIB)\SDL\include;$(THIRDPARTYLIB)\stb;$(THIRDPARTYLIB)\imgui;$(SolutionDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\volk;$(THIRDPARTYLIB)\stb;$(THIRDPARTYLIB)\imgui;$(SolutionDir)\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -144,7 +144,7 @@
     <ClCompile Include="..\..\..\..\lib\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\..\..\..\lib\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\..\src\bhEditor.cpp" />
-    <ClCompile Include="..\..\src\bhEditorMain.cpp" />
+    <ClCompile Include="..\..\src\bhMain.cpp" />
     <ClCompile Include="..\..\src\bhImage.cpp" />
     <ClCompile Include="..\..\src\bhImage_Impl.cpp" />
     <ClCompile Include="..\..\src\bhLog.cpp" />

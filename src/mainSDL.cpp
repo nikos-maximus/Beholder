@@ -31,18 +31,18 @@ int main(int argc, char* argv[])
     {
       SDL_Surface* wndSurface = SDL_GetWindowSurface(g_mainWnd);
 
-      SDL_Surface* compoSurface = SDL_CreateSurface(wndSurface->w, wndSurface->h, SDL_PIXELFORMAT_RGBA8888);
-      Uint32* pixels = reinterpret_cast<Uint32*>(compoSurface->pixels);
-      const SDL_PixelFormatDetails* details = SDL_GetPixelFormatDetails(compoSurface->format);
-      for (int y = 0; y < compoSurface->h; ++y)
-      {
-        for (int x = 0; x < compoSurface->w; ++x)
-        {
-          *pixels++ = SDL_MapRGBA(details, nullptr, Uint8(float(x) / float(compoSurface->w) * 255.999f), Uint8(float(y) / float(compoSurface->h) * 255.999f), 0, SDL_ALPHA_OPAQUE);
-        }
-      }
-      SDL_BlitSurface(compoSurface, nullptr, wndSurface, nullptr);
-      SDL_DestroySurface(compoSurface);
+      //SDL_Surface* compoSurface = SDL_CreateSurface(wndSurface->w, wndSurface->h, SDL_PIXELFORMAT_RGBA8888);
+      //Uint32* pixels = reinterpret_cast<Uint32*>(compoSurface->pixels);
+      //const SDL_PixelFormatDetails* details = SDL_GetPixelFormatDetails(compoSurface->format);
+      //for (int y = 0; y < compoSurface->h; ++y)
+      //{
+      //  for (int x = 0; x < compoSurface->w; ++x)
+      //  {
+      //    *pixels++ = SDL_MapRGBA(details, nullptr, Uint8(float(x) / float(compoSurface->w) * 255.999f), Uint8(float(y) / float(compoSurface->h) * 255.999f), 0, SDL_ALPHA_OPAQUE);
+      //  }
+      //}
+      //SDL_BlitSurface(compoSurface, nullptr, wndSurface, nullptr);
+      //SDL_DestroySurface(compoSurface);
 
       SDL_ShowWindow(g_mainWnd); // TODO: Error check
       while (running)

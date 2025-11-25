@@ -76,7 +76,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(THIRDPARTYLIB)\SDL\include;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\volk;$(SolutionDir)\..\thirdparty\VulkanMemoryAllocator\include;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -91,7 +91,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(THIRDPARTYLIB)\SDL\include;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\volk;$(SolutionDir)\..\thirdparty\VulkanMemoryAllocator\include;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -106,12 +106,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(THIRDPARTYLIB)\SDL\include;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\volk;$(SolutionDir)\..\thirdparty\VulkanMemoryAllocator\include;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>"$(THIRDPARTYLIB)\SDL\VisualC\x64\Debug\SDL3.lib";$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>"$(SolutionDir)\..\thirdparty\SDL\VisualC\x64\Debug\SDL3.lib";$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -122,22 +122,32 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(THIRDPARTYLIB)\SDL\include;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\volk;$(SolutionDir)\..\thirdparty\VulkanMemoryAllocator\include;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>"$(THIRDPARTYLIB)\SDL\VisualC\x64\Release\SDL3.lib";$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>"$(SolutionDir)\..\thirdparty\SDL\VisualC\x64\Release\SDL3.lib";$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\bhConfig.cpp" />
-    <ClCompile Include="..\..\src\mainVK.cpp" />
+    <ClCompile Include="..\..\src\bhLog.cpp" />
+    <ClCompile Include="..\..\src\bhMain.cpp" />
+    <ClCompile Include="..\..\src\bhPlatform.cpp" />
+    <ClCompile Include="..\..\src\bhUtil.cpp" />
+    <ClCompile Include="..\..\src\bhVk.cpp" />
+    <ClCompile Include="..\..\src\bhVMAImpl.cpp" />
+    <ClCompile Include="..\..\src\bhVolkImpl.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\bhConfig.hpp" />
+    <ClInclude Include="..\..\include\bhLog.hpp" />
+    <ClInclude Include="..\..\include\bhPlatform.hpp" />
+    <ClInclude Include="..\..\include\bhUtil.hpp" />
+    <ClInclude Include="..\..\include\bhVk.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
