@@ -19,6 +19,10 @@ namespace bhVk
 
 	static VkSwapchainKHR g_vkSwapchain { VK_NULL_HANDLE };
 	static VkImage g_swapchainImages[NUM_DISPLAY_BUFFERS] { VK_NULL_HANDLE };
+	static VkImageView g_colorViews[NUM_DISPLAY_BUFFERS] { VK_NULL_HANDLE };
+	static Image g_depthStencilImages[NUM_DISPLAY_BUFFERS];
+	static VkImageView g_depthStencilViews[NUM_DISPLAY_BUFFERS] { VK_NULL_HANDLE };
+
 	static uint32_t g_currSwapImgIndex { UINT32_MAX };
 
 	static VkQueue g_renderQueue { VK_NULL_HANDLE };
@@ -239,35 +243,53 @@ namespace bhVk
 		int ww, wh;
 		SDL_GetWindowSize(wnd, &ww, &wh);
 
-		VkImageCreateInfo depthStencilImageCI = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
-		//depthStencilImageCI
+		for (uint32_t fbIdx = 0; fbIdx < NUM_DISPLAY_BUFFERS; ++fbIdx)
+		{
+			VkImageViewCreateInfo colorViewCI = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+			colorViewCI.image = g_swapchainImages[fbIdx];
+			colorViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
+			colorViewCI.format = VK_FORMAT_D24_UNORM_S8_UINT;
+			//depthStencilViewCI.components = ; // All-zeroes is identity, so this should work as is (?)
+			colorViewCI.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
 
-		VmaAllocationCreateInfo allocationCI = {};
-		allocationCI.usage = VMA_MEMORY_USAGE_AUTO;
+			VkImageView& colorView = g_colorViews[fbIdx];
+			vkCreateImageView(g_renderDevice, &colorViewCI, GetAllocationCallbacks(), &colorView);
 
-		Image depthStencilImage;
-		vmaCreateImage(g_renderDeviceAllocator, &depthStencilImageCI, &allocationCI, &(depthStencilImage.image), &(depthStencilImage.allocation), nullptr);
+			VkImageCreateInfo depthStencilImageCI = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
 
-		VkImageViewCreateInfo depthStencilViewCI = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-		depthStencilViewCI.image = depthStencilImage.image;
-		depthStencilViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		depthStencilViewCI.format = VK_FORMAT_D24_UNORM_S8_UINT;
-		//depthStencilViewCI.components = ; // All-zeroes is identity, so this should work as is (?)
-		depthStencilViewCI.subresourceRange = { VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT, 0, 1, 0, 1 };
+			VmaAllocationCreateInfo allocationCI = {};
+			allocationCI.usage = VMA_MEMORY_USAGE_AUTO;
 
-		VkImageView depthStencilView = VK_NULL_HANDLE;
-		vkCreateImageView(g_renderDevice,&depthStencilViewCI , GetAllocationCallbacks(), &depthStencilView);
+			Image& depthStencilImage = g_depthStencilImages[fbIdx];
+			vmaCreateImage(g_renderDeviceAllocator, &depthStencilImageCI, &allocationCI, &(depthStencilImage.image), &(depthStencilImage.allocation), nullptr);
 
-		VkFramebufferCreateInfo fbCI = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
-		fbCI.renderPass = ;
-		fbCI.attachmentCount = 2;
-		fbCI.pAttachments = ;
-		fbCI.width = ww;
-		fbCI.height = wh;
-		fbCI.layers = 1;
+			VkImageViewCreateInfo depthStencilViewCI = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+			depthStencilViewCI.image = depthStencilImage.image;
+			depthStencilViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
+			depthStencilViewCI.format = VK_FORMAT_D24_UNORM_S8_UINT;
+			//depthStencilViewCI.components = ; // All-zeroes is identity, so this should work as is (?)
+			depthStencilViewCI.subresourceRange = { VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT, 0, 1, 0, 1 };
 
-		VkFramebuffer fb = VK_NULL_HANDLE;
-		return vkCreateFramebuffer(g_renderDevice, &fbCI, GetAllocationCallbacks(), &fb) == VK_SUCCESS;
+			VkImageView& depthStencilView = g_depthStencilViews[fbIdx];
+			vkCreateImageView(g_renderDevice, &depthStencilViewCI, GetAllocationCallbacks(), &depthStencilView);
+
+			VkImageView attachments[] = { ,depthStencilView };
+
+			VkFramebufferCreateInfo fbCI = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
+			fbCI.renderPass = ;
+			fbCI.attachmentCount = 2;
+			fbCI.pAttachments = ;
+			fbCI.width = ww;
+			fbCI.height = wh;
+			fbCI.layers = 1;
+
+			VkFramebuffer fb = VK_NULL_HANDLE;
+			if (vkCreateFramebuffer(g_renderDevice, &fbCI, GetAllocationCallbacks(), &fb) != VK_SUCCESS)
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 
 	void DestroyFramebuffers()
@@ -338,7 +360,10 @@ namespace bhVk
 
 			if (vkCreateCommandPool(g_renderDevice, &commandPoolCI, GetAllocationCallbacks(), &g_commandPool) == VK_SUCCESS)
 			{
-				return CreateSwapchain(wnd);
+				if (CreateSwapchain(wnd))
+				{
+					CreateFramebuffers(wnd);
+				}
 			}
 			
 		}

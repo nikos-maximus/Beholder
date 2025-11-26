@@ -17,6 +17,13 @@ namespace bhVk
     VmaAllocation allocation { VK_NULL_HANDLE };
   };
 
+  struct Framebuffer
+  {
+    Image depthBufferImage;
+    VkImageView colorView { VK_NULL_HANDLE };
+    VkImageView depthBufferView { VK_NULL_HANDLE };
+  };
+
   bool CreateInstance();
   void DestroyInstance();
   bool CreateRenderDevice(SDL_Window* wnd);
