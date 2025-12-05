@@ -19,15 +19,19 @@ namespace bhVk
 
   struct Framebuffer
   {
-    Image depthBufferImage;
     VkImageView colorView { VK_NULL_HANDLE };
-    VkImageView depthBufferView { VK_NULL_HANDLE };
+    Image depthStencilImage;
+    VkImageView depthStencilView { VK_NULL_HANDLE };
+    VkFramebuffer framebuffer { VK_NULL_HANDLE };
   };
 
   bool CreateInstance();
   void DestroyInstance();
   bool CreateRenderDevice(SDL_Window* wnd);
   void DestroyRenderDevice();
+
+  void BeginFrame();
+  void EndFrame();
 }
 
 #endif //BH_VK_HPP

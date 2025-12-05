@@ -42,6 +42,9 @@ int main(int argc, char* argv[])
                 }
               }
             }
+
+            bhVk::BeginFrame();
+            bhVk::EndFrame();
           }
           bhVk::DestroyRenderDevice();
         }
