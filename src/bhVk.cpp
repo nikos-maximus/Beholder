@@ -556,33 +556,6 @@ namespace bhVk
 			return;
 		}
 
-		VkClearAttachment clearAttachments[2] = {};
-		{
-			clearAttachments[0].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			//clearAttachments[0].colorAttachment = ;
-			clearAttachments[0].clearValue.color.float32[0] = CLEAR_COLOR_RED;
-			clearAttachments[0].clearValue.color.float32[1] = CLEAR_COLOR_GREEN;
-			clearAttachments[0].clearValue.color.float32[2] = CLEAR_COLOR_BLUE;
-			clearAttachments[0].clearValue.color.float32[3] = CLEAR_COLOR_ALPHA;
-
-			clearAttachments[1].aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-			//clearAttachments[1].colorAttachment = ;
-			clearAttachments[1].clearValue.depthStencil.depth = CLEAR_DEPTH;
-			clearAttachments[1].clearValue.depthStencil.stencil = CLEAR_STENCIL;
-		}
-
-		VkClearRect clearRects[2] = {};
-		{
-			clearRects[0].rect.extent = g_windowSize;
-			//clearRects[0].baseArrayLayer = ;
-			clearRects[0].layerCount = 1;
-
-			clearRects[1].rect.extent = g_windowSize;
-			//clearRects[1].baseArrayLayer = ;
-			clearRects[1].layerCount = 1;
-		}
-		vkCmdClearAttachments(currCommandBuffer, 2, clearAttachments, 2, clearRects);
-
 		VkClearValue clearValues[2] = {};
 		{
 			clearValues[0].color.float32[0] = CLEAR_COLOR_RED;
@@ -602,6 +575,33 @@ namespace bhVk
 			renderPassBI.pClearValues = clearValues;
 		}
 		vkCmdBeginRenderPass(currCommandBuffer, &renderPassBI, VK_SUBPASS_CONTENTS_INLINE);
+
+		//VkClearAttachment clearAttachments[2] = {};
+		//{
+		//	clearAttachments[0].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		//	//clearAttachments[0].colorAttachment = ;
+		//	clearAttachments[0].clearValue.color.float32[0] = CLEAR_COLOR_RED;
+		//	clearAttachments[0].clearValue.color.float32[1] = CLEAR_COLOR_GREEN;
+		//	clearAttachments[0].clearValue.color.float32[2] = CLEAR_COLOR_BLUE;
+		//	clearAttachments[0].clearValue.color.float32[3] = CLEAR_COLOR_ALPHA;
+
+		//	clearAttachments[1].aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+		//	//clearAttachments[1].colorAttachment = ;
+		//	clearAttachments[1].clearValue.depthStencil.depth = CLEAR_DEPTH;
+		//	clearAttachments[1].clearValue.depthStencil.stencil = CLEAR_STENCIL;
+		//}
+
+		//VkClearRect clearRects[2] = {};
+		//{
+		//	clearRects[0].rect.extent = g_windowSize;
+		//	//clearRects[0].baseArrayLayer = ;
+		//	clearRects[0].layerCount = 1;
+
+		//	clearRects[1].rect.extent = g_windowSize;
+		//	//clearRects[1].baseArrayLayer = ;
+		//	clearRects[1].layerCount = 1;
+		//}
+		//vkCmdClearAttachments(currCommandBuffer, 2, clearAttachments, 2, clearRects);
 	}
 
 	void EndFrame()
