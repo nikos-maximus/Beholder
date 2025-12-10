@@ -40,8 +40,6 @@ SDL_PropertiesID bhConfig::CreateProperties(const bhConfig& config)
 
     SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, SDL_WINDOWPOS_CENTERED);
     SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, SDL_WINDOWPOS_CENTERED);
-
-    SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_VULKAN_BOOLEAN, config.render.gpuApi == bhConfig::RenderSettings::GpuApi::API_VULKAN);
   }
   return props;
 }

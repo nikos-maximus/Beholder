@@ -1,5 +1,5 @@
 #include <SDL3/SDL_init.h>
-
+#include <SDL3/SDL_log.h>
 #include "bhConfig.hpp"
 #include "bhPlatform.hpp"
 #include "bhVk.hpp"
@@ -7,7 +7,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[])
 {
-  // TODO:
   if (argc > 1)
   {
     bhPlatform::SetDataDir(argv[1]);
@@ -15,12 +14,13 @@ int main(int argc, char* argv[])
 
   if (SDL_Init(SDL_INIT_VIDEO))
   {
-    bhConfig cfg;
-    //bhConfig::Load()
-    SDL_PropertiesID props = bhConfig::CreateProperties(cfg);
-
     if (bhVk::CreateInstance())
     {
+      bhConfig cfg;
+      //bhConfig::Load()
+      SDL_PropertiesID props = bhConfig::CreateProperties(cfg);
+      SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_VULKAN_BOOLEAN, true);
+
       SDL_Window* mainWindow = SDL_CreateWindowWithProperties(props);
       if (mainWindow)
       {
@@ -53,7 +53,8 @@ int main(int argc, char* argv[])
       bhVk::DestroyInstance();
     }
     SDL_Quit();
+    return 0;
   }
-  return 0;
-  //return bhEditor::Run();
+  SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s\n", SDL_GetError());
+  return -1;
 }

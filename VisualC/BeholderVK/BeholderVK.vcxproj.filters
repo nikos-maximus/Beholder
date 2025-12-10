@@ -18,7 +18,7 @@
     <ClCompile Include="..\..\src\bhConfig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\bhMain.cpp">
+    <ClCompile Include="..\..\src\bhMainVk.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\bhVolkImpl.cpp">

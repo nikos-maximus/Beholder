@@ -135,7 +135,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\bhConfig.cpp" />
     <ClCompile Include="..\..\src\bhLog.cpp" />
-    <ClCompile Include="..\..\src\bhMain.cpp" />
+    <ClCompile Include="..\..\src\bhMainVk.cpp" />
     <ClCompile Include="..\..\src\bhPlatform.cpp" />
     <ClCompile Include="..\..\src\bhUtil.cpp" />
     <ClCompile Include="..\..\src\bhVk.cpp" />

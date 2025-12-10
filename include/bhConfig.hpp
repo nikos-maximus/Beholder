@@ -23,13 +23,6 @@ struct bhConfig
 	////////////////////////////////////////
 	struct RenderSettings
 	{
-		enum GpuApi
-		{
-			API_SDL,
-			API_OPENGL,
-			API_VULKAN
-		};
-
 		struct VKSettings
 		{
 			VKSettings()
@@ -43,7 +36,6 @@ struct bhConfig
 			: color_depth(32), depth_bits(24), stencil_bits(8)
 			, aa_samples(0), anisotropy_level(0), num_swapchain_images(2)
 			, gen_mipmaps(true)
-			, gpuApi(GpuApi::API_VULKAN)
 		{}
 
 		VKSettings vk;
@@ -54,7 +46,6 @@ struct bhConfig
 		Uint8 aa_samples;
 		Uint8 anisotropy_level; // Anisotropy value = (1 << anisotropy_level) > 1 ? (1 << anisotropy_level) : 0, as a value of 1 is meaningless
 		Uint8 num_swapchain_images;
-		GpuApi gpuApi;
 		bool gen_mipmaps : 1;
 	};
 
