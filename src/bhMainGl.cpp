@@ -32,6 +32,11 @@ int main(int argc, char* argv[])
 				}
 				if (bhGl::Init())
 				{
+					if (bhGl::InitImGui(mainWindow, glCtx))
+					{
+						bhGl::ShowImGui(true);
+					}
+
 					SDL_ShowWindow(mainWindow); // TODO: Error check
 					bool running = true;
 					while (running)
@@ -53,6 +58,8 @@ int main(int argc, char* argv[])
 						bhGl::EndFrame();
 						SDL_GL_SwapWindow(mainWindow);
 					}
+
+					bhGl::DestroyImGui();
 				}
 				SDL_GL_DestroyContext(glCtx);
 			}

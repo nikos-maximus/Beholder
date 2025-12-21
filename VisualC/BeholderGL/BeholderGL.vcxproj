@@ -76,7 +76,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -92,7 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -108,7 +108,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -124,7 +124,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -152,6 +152,13 @@
     <ClCompile Include="..\..\src\bhMainGl.cpp" />
     <ClCompile Include="..\..\src\bhUtil.cpp" />
     <ClCompile Include="..\..\thirdparty\gl3w\src\gl3w.c" />
+    <ClCompile Include="..\..\thirdparty\imgui\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="..\..\thirdparty\imgui\backends\imgui_impl_sdl3.cpp" />
+    <ClCompile Include="..\..\thirdparty\imgui\imgui.cpp" />
+    <ClCompile Include="..\..\thirdparty\imgui\imgui_demo.cpp" />
+    <ClCompile Include="..\..\thirdparty\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\..\thirdparty\imgui\imgui_tables.cpp" />
+    <ClCompile Include="..\..\thirdparty\imgui\imgui_widgets.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

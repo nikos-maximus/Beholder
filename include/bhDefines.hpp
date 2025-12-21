@@ -4,17 +4,10 @@
 // Bit manipulation
 #define BH_BIT(x) (1 << (x))
 
-// Rendering
-//#define BH_RENDERING_PROFILING 0
+static constexpr int BH_GL_VERSION_MAJOR = 4;
+static constexpr int BH_GL_VERSION_MINOR = 6;
 
-//#define BH_MAX_INSTANCES 1024
-
-// Mesh
-//#define BH_USE_MESH_INDEX_TYPE_UNIT16 0
-
-// Platform
-//#define BH_PATH_BUF_LEN 128
-//
-//#define BH_INVALID_RESOURCE nullptr
+static constexpr int BH_VK_VERSION_MAJOR = 1;
+static constexpr int BH_VK_VERSION_MINOR = 1;
 
 #endif //BH_DEFINES_HPP

@@ -2,11 +2,15 @@
 #include <iostream> //DEBUG
 #include <SDL3/SDL_assert.h>
 #include <SDL3/SDL_vulkan.h>
+#include <imgui.h>
+#include <imgui_impl_sdl3.h>
+#include <imgui_impl_vulkan.h>
+#include "bhDefines.hpp"
 #include "bhVk.hpp"
 
 namespace bhVk
 {
-	static constexpr uint32_t BH_VK_API_VERSION = VK_MAKE_API_VERSION(0, 1, 1, 0);
+	static constexpr uint32_t BH_VK_API_VERSION = VK_MAKE_API_VERSION(0, BH_VK_VERSION_MAJOR, BH_VK_VERSION_MINOR, 0);
 	static constexpr uint32_t BH_NUM_DISPLAY_BUFFERS { 2 };
 
 	static VkInstance g_instance { VK_NULL_HANDLE };
@@ -30,6 +34,11 @@ namespace bhVk
 	static VkSemaphore g_semaphoreImageAvailable { VK_NULL_HANDLE };
 	static VkSemaphore g_semaphoreRenderFinished { VK_NULL_HANDLE };
 	static VkFence g_drawFence { VK_NULL_HANDLE };
+
+	static constexpr uint8_t BH_IMGUI_FLAG_READY = BH_BIT(0);
+	static constexpr uint8_t BH_IMGUI_FLAG_VISIBLE = BH_BIT(1);
+
+	static uint8_t g_imguiFlags = 0;
 
 
 	__forceinline VkAllocationCallbacks* GetAllocationCallbacks()
@@ -638,5 +647,71 @@ namespace bhVk
 		}
 		vkQueuePresentKHR(g_renderQueue, &presentInfo);
 		//++frameCount;
+	}
+
+	bool InitImGui(SDL_Window* window, void* glContext)
+	{
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO();
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+
+		if (ImGui_ImplSDL3_InitForOpenGL(window, glContext))
+		{
+			static const size_t VERSION_SRING_LEN = 16;
+			char versionString[VERSION_SRING_LEN];
+			sprintf_s(versionString, VERSION_SRING_LEN, "#version %d%d0", BH_GL_VERSION_MAJOR, BH_GL_VERSION_MINOR);
+
+			//ImGui_ImplVulkan_InitInfo vii;
+
+			if (ImGui_ImplVulkan_Init(&vii))
+			{
+				ImGui::StyleColorsDark();
+				g_imguiFlags = BH_IMGUI_FLAG_READY;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	void DestroyImGui()
+	{
+		g_imguiFlags = 0;
+		ImGui_ImplVulkan_Shutdown();
+		ImGui_ImplSDL3_Shutdown();
+		ImGui::DestroyContext();
+	}
+
+	void BeginImGuiFrame()
+	{
+		if (g_imguiFlags == (BH_IMGUI_FLAG_READY | BH_IMGUI_FLAG_VISIBLE))
+		{
+			ImGui_ImplSDL3_NewFrame();
+			ImGui_ImplVulkan_NewFrame();
+			ImGui::NewFrame();
+
+			// DEBUG
+			bool showdemo = true;
+			ImGui::ShowDemoWindow(&showdemo);
+		}
+	}
+
+	void EndImGuiFrame()
+	{
+		ImGui::Render();
+		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData());
+	}
+
+	void ShowImGui(bool show)
+	{
+		if (show)
+		{
+			g_imguiFlags |= BH_IMGUI_FLAG_VISIBLE;
+		}
+		else
+		{
+			g_imguiFlags &= ~BH_IMGUI_FLAG_VISIBLE;
+		}
 	}
 }

@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="thirdparty">
+      <UniqueIdentifier>{74ea14ec-92d7-42af-93b7-b3febc990ef4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\bhConfig.cpp">
@@ -38,6 +41,27 @@
     </ClCompile>
     <ClCompile Include="..\..\src\bhVMAImpl.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\imgui\imgui.cpp">
+      <Filter>thirdparty</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\imgui\imgui_demo.cpp">
+      <Filter>thirdparty</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\imgui\imgui_draw.cpp">
+      <Filter>thirdparty</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\imgui\imgui_tables.cpp">
+      <Filter>thirdparty</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\imgui\imgui_widgets.cpp">
+      <Filter>thirdparty</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\imgui\backends\imgui_impl_sdl3.cpp">
+      <Filter>thirdparty</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\imgui\backends\imgui_impl_vulkan.cpp">
+      <Filter>thirdparty</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

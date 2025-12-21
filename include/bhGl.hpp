@@ -7,6 +7,9 @@ namespace bhGl
 	bool Init();
 	void BeginFrame();
 	void EndFrame();
+	bool InitImGui(SDL_Window* window, void* glContext);
+	void DestroyImGui();
+	void ShowImGui(bool show);
 }
 
 #endif //BH_GL_HPP
