@@ -7,6 +7,9 @@
 
 namespace bhGl
 {
+	static constexpr int BH_GL_VERSION_MAJOR = 4;
+	static constexpr int BH_GL_VERSION_MINOR = 6;
+
 	static constexpr GLubyte BH_IMGUI_FLAG_READY = BH_BIT(0);
 	static constexpr GLubyte BH_IMGUI_FLAG_VISIBLE = BH_BIT(1);
 

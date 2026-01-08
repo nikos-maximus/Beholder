@@ -1,5 +1,6 @@
-#include "bhGltf.h"
+#include "bhGltf.hpp"
 #include <fstream>
+
 #define TINYGLTF_IMPLEMENTATION
 #define TINYGLTF_NO_STB_IMAGE 
 #define TINYGLTF_NO_STB_IMAGE_WRITE

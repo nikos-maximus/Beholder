@@ -137,6 +137,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\include\bhConfig.hpp" />
     <ClInclude Include="..\..\include\bhGl.hpp" />
+    <ClInclude Include="..\..\include\bhGltf.hpp" />
     <ClInclude Include="..\..\include\bhMat4.hpp" />
     <ClInclude Include="..\..\include\bhDefines.hpp" />
     <ClInclude Include="..\..\include\bhTypes.hpp" />
@@ -147,6 +148,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\bhConfig.cpp" />
     <ClCompile Include="..\..\src\bhGl.cpp" />
+    <ClCompile Include="..\..\src\bhGltf.cpp" />
     <ClCompile Include="..\..\src\bhLog.cpp" />
     <ClCompile Include="..\..\src\bhPlatform.cpp" />
     <ClCompile Include="..\..\src\bhMainGl.cpp" />

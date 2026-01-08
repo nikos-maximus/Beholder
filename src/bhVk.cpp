@@ -2,19 +2,35 @@
 #include <iostream> //DEBUG
 #include <SDL3/SDL_assert.h>
 #include <SDL3/SDL_vulkan.h>
-#include <imgui.h>
-#include <imgui_impl_sdl3.h>
-#include <imgui_impl_vulkan.h>
+
 #include "bhDefines.hpp"
 #include "bhVk.hpp"
 
+#ifdef SDL_PLATFORM_WINDOWS
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <vulkan/vulkan_win32.h>
+#endif
+
+#include <imgui.h>
+#include <imgui_impl_sdl3.h>
+#include <imgui_impl_vulkan.h>
+
 namespace bhVk
 {
-	static constexpr uint32_t BH_VK_API_VERSION = VK_MAKE_API_VERSION(0, BH_VK_VERSION_MAJOR, BH_VK_VERSION_MINOR, 0);
+	struct RankedPhysicalDevice
+	{
+		VkPhysicalDevice physDevice { VK_NULL_HANDLE };
+		uint32_t rank { 0 };
+		uint32_t preferredQueueFamily { 0 };
+	};
+
+	static constexpr uint32_t BH_VK_API_VERSION = VK_API_VERSION_1_3;
 	static constexpr uint32_t BH_NUM_DISPLAY_BUFFERS { 2 };
 
 	static VkInstance g_instance { VK_NULL_HANDLE };
-	
+
+	static RankedPhysicalDevice g_selectedRankedRenderDevice;
 	static VkDevice g_renderDevice { VK_NULL_HANDLE };
 	static VmaAllocator g_renderDeviceAllocator { VK_NULL_HANDLE };
 
@@ -47,13 +63,6 @@ namespace bhVk
 		//return &g_vkAllocationCallbacks;
 		return nullptr;
 	}
-
-	struct RankedPhysicalDevice
-	{
-		VkPhysicalDevice physDevice { VK_NULL_HANDLE };
-		uint32_t rank { 0 };
-		uint32_t preferredQueueFamily { 0 };
-	};
 
 	int CompareRankedDevice(const void* a, const void* b)
 	{
@@ -161,14 +170,18 @@ namespace bhVk
 		//if (!SDL_Vulkan_LoadLibrary(nullptr)) return false;
 
 		VkApplicationInfo appInfo = { VK_STRUCTURE_TYPE_APPLICATION_INFO };
-		appInfo.pApplicationName = "Beholder";
-		appInfo.applicationVersion = 1;
-		appInfo.pEngineName = "BHEngine";
-		appInfo.engineVersion = 1;
-		appInfo.apiVersion = BH_VK_API_VERSION;
+		{
+			appInfo.pApplicationName = "Beholder";
+			appInfo.applicationVersion = 1;
+			appInfo.pEngineName = "BHEngine";
+			appInfo.engineVersion = 1;
+			appInfo.apiVersion = BH_VK_API_VERSION;
+		}
 
 		VkInstanceCreateInfo instanceCI = { VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
-		instanceCI.pApplicationInfo = &appInfo;
+		{
+			instanceCI.pApplicationInfo = &appInfo;
+		}
 
 		Uint32 numSDLExtensions = 0;
 		auto sdlExtensions = SDL_Vulkan_GetInstanceExtensions(&numSDLExtensions);
@@ -185,9 +198,10 @@ namespace bhVk
 #endif
 
 		const char* extensionNames[] = {
-			"VK_KHR_surface"
+			VK_KHR_SURFACE_EXTENSION_NAME
 #ifdef SDL_PLATFORM_WINDOWS
-			,"VK_KHR_win32_surface"
+			,VK_KHR_WIN32_SURFACE_EXTENSION_NAME
+			//,"VK_KHR_win32_surface"
 #endif
 		};
 
@@ -236,7 +250,7 @@ namespace bhVk
 		}
 
 		SDL_qsort(rankedPhysDevices.data(), numPhysDevices, sizeof(RankedPhysicalDevice), CompareRankedDevice);
-		VkPhysicalDevice preferredPhysDevice = rankedPhysDevices[0].physDevice;
+		g_selectedRankedRenderDevice = rankedPhysDevices[0];
 
 		std::vector<float> priorities = { 1.0f };
 		VkDeviceQueueCreateInfo queueCI = { VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
@@ -245,15 +259,43 @@ namespace bhVk
 		queueCI.pQueuePriorities = priorities.data();
 
 		uint32_t numExtensions = 1;
-		const char* extensionNames[] = { "VK_KHR_swapchain" };
+		const char* extensionNames[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+
+		VkPhysicalDeviceVulkan11Features device11Features = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES };
+		{}
+
+		VkPhysicalDeviceVulkan12Features device12Features = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES};
+		{
+			device12Features.pNext = &device11Features;
+			device12Features.descriptorIndexing = VK_TRUE;
+			device12Features.descriptorBindingVariableDescriptorCount = VK_TRUE;
+			device12Features.runtimeDescriptorArray = VK_TRUE;
+			device12Features.bufferDeviceAddress = VK_TRUE;
+		}
+
+		VkPhysicalDeviceVulkan13Features device13Features = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES };
+		{
+			device13Features.pNext = &device12Features;
+			device13Features.synchronization2 = VK_TRUE;
+			device13Features.dynamicRendering = VK_TRUE;
+		}
+
+		VkPhysicalDeviceFeatures deviceFeatures = {};
+		{
+			deviceFeatures.samplerAnisotropy = VK_TRUE;
+		}
 
 		VkDeviceCreateInfo deviceCI = { VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
-		deviceCI.queueCreateInfoCount = 1;
-		deviceCI.pQueueCreateInfos = &queueCI;
-		deviceCI.enabledExtensionCount = numExtensions;
-		deviceCI.ppEnabledExtensionNames = extensionNames;
+		{
+			deviceCI.pNext = &device13Features;
+			deviceCI.queueCreateInfoCount = 1;
+			deviceCI.pQueueCreateInfos = &queueCI;
+			deviceCI.enabledExtensionCount = numExtensions;
+			deviceCI.ppEnabledExtensionNames = extensionNames;
+			deviceCI.pEnabledFeatures = &deviceFeatures;
+		}
 
-		error = vkCreateDevice(preferredPhysDevice, &deviceCI, GetAllocationCallbacks(), &g_renderDevice);
+		error = vkCreateDevice(g_selectedRankedRenderDevice.physDevice, &deviceCI, GetAllocationCallbacks(), &g_renderDevice);
 		if (error)
 		{
 			// Figure out error?
@@ -262,14 +304,16 @@ namespace bhVk
 
 		// Create VMA
 		VmaAllocatorCreateInfo allocatorCreateInfo = {};
-		allocatorCreateInfo.physicalDevice = rankedPhysDevices[0].physDevice;
-		allocatorCreateInfo.device = g_renderDevice;
-		allocatorCreateInfo.instance = g_instance;
-		allocatorCreateInfo.vulkanApiVersion = BH_VK_API_VERSION;
-		//allocatorCreateInfo.flags =
-		//	VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT |
-		//	VMA_ALLOCATOR_CREATE_EXT_MEMORY_PRIORITY_BIT |
-		//	VMA_ALLOCATOR_CREATE_KHR_EXTERNAL_MEMORY_WIN32_BIT;
+		{
+			allocatorCreateInfo.physicalDevice = rankedPhysDevices[0].physDevice;
+			allocatorCreateInfo.device = g_renderDevice;
+			allocatorCreateInfo.instance = g_instance;
+			allocatorCreateInfo.vulkanApiVersion = BH_VK_API_VERSION;
+			//allocatorCreateInfo.flags =
+			//	VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT |
+			//	VMA_ALLOCATOR_CREATE_EXT_MEMORY_PRIORITY_BIT |
+			//	VMA_ALLOCATOR_CREATE_KHR_EXTERNAL_MEMORY_WIN32_BIT;
+		}
 
 		VmaVulkanFunctions vulkanFunctions;
 		error = vmaImportVulkanFunctionsFromVolk(&allocatorCreateInfo, &vulkanFunctions);
@@ -303,10 +347,12 @@ namespace bhVk
 		}
 
 		VkCommandBufferAllocateInfo cmdBufferAI = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
-		cmdBufferAI.commandPool = g_commandPool;
-		cmdBufferAI.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		cmdBufferAI.commandBufferCount = BH_NUM_DISPLAY_BUFFERS;
-		
+		{
+			cmdBufferAI.commandPool = g_commandPool;
+			cmdBufferAI.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+			cmdBufferAI.commandBufferCount = BH_NUM_DISPLAY_BUFFERS;
+		}
+
 		error = vkAllocateCommandBuffers(g_renderDevice, &cmdBufferAI, g_commandBuffers);
 		if (error)
 		{
@@ -356,21 +402,23 @@ namespace bhVk
 		VkExtent2D wSiz = { uint32_t(ww), uint32_t(wh) };
 
 		VkSwapchainCreateInfoKHR swapchainCI { VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
-		swapchainCI.surface = wndSurface;
-		swapchainCI.minImageCount = BH_NUM_DISPLAY_BUFFERS;
-		swapchainCI.imageFormat = VK_FORMAT_R8G8B8A8_UNORM;
-		swapchainCI.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
-		swapchainCI.imageExtent = wSiz;
-		swapchainCI.imageArrayLayers = 1;
-		swapchainCI.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-		swapchainCI.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		//swapchainCI.queueFamilyIndexCount = ; //Relevant if not exclusive
-		//swapchainCI.pQueueFamilyIndices = ;
-		swapchainCI.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-		swapchainCI.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-		swapchainCI.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-		//swapchainCI.clipped = ;
-		//swapchainCI.oldSwapchain = ;
+		{
+			swapchainCI.surface = wndSurface;
+			swapchainCI.minImageCount = BH_NUM_DISPLAY_BUFFERS;
+			swapchainCI.imageFormat = VK_FORMAT_R8G8B8A8_SRGB;
+			swapchainCI.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+			swapchainCI.imageExtent = wSiz;
+			swapchainCI.imageArrayLayers = 1;
+			swapchainCI.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			swapchainCI.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+			//swapchainCI.queueFamilyIndexCount = ; //Relevant if not exclusive
+			//swapchainCI.pQueueFamilyIndices = ;
+			swapchainCI.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+			swapchainCI.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+			swapchainCI.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+			//swapchainCI.clipped = ;
+			//swapchainCI.oldSwapchain = ;
+		}
 
 		if (vkCreateSwapchainKHR(g_renderDevice, &swapchainCI, GetAllocationCallbacks(), &g_swapchain) == VK_SUCCESS)
 		{
@@ -385,11 +433,13 @@ namespace bhVk
 		for (uint32_t fbIdx = 0; fbIdx < BH_NUM_DISPLAY_BUFFERS; ++fbIdx)
 		{
 			VkImageViewCreateInfo colorViewCI = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-			colorViewCI.image = g_swapchainImages[fbIdx];
-			colorViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			colorViewCI.format = VK_FORMAT_D24_UNORM_S8_UINT;
-			//depthStencilViewCI.components = ; // All-zeroes is identity, so this should work as is (?)
-			colorViewCI.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+			{
+				colorViewCI.image = g_swapchainImages[fbIdx];
+				colorViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
+				colorViewCI.format = VK_FORMAT_D24_UNORM_S8_UINT;
+				//depthStencilViewCI.components = ; // All-zeroes is identity, so this should work as is (?)
+				colorViewCI.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+			}
 
 			VkImageView& colorView = g_framebuffers[fbIdx].colorView;
 			vkCreateImageView(g_renderDevice, &colorViewCI, GetAllocationCallbacks(), &colorView);
@@ -416,11 +466,13 @@ namespace bhVk
 			vmaCreateImage(g_renderDeviceAllocator, &depthStencilImageCI, &allocationCI, &(depthStencilImage.image), &(depthStencilImage.allocation), nullptr);
 
 			VkImageViewCreateInfo depthStencilViewCI = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-			depthStencilViewCI.image = depthStencilImage.image;
-			depthStencilViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			depthStencilViewCI.format = VK_FORMAT_D24_UNORM_S8_UINT;
-			//depthStencilViewCI.components = ; // All-zeroes is identity, so this should work as is (?)
-			depthStencilViewCI.subresourceRange = { VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT, 0, 1, 0, 1 };
+			{
+				depthStencilViewCI.image = depthStencilImage.image;
+				depthStencilViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
+				depthStencilViewCI.format = VK_FORMAT_D24_UNORM_S8_UINT;
+				//depthStencilViewCI.components = ; // All-zeroes is identity, so this should work as is (?)
+				depthStencilViewCI.subresourceRange = { VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT, 0, 1, 0, 1 };
+			}
 
 			VkImageView& depthStencilView = g_framebuffers[fbIdx].depthStencilView;
 			vkCreateImageView(g_renderDevice, &depthStencilViewCI, GetAllocationCallbacks(), &depthStencilView);
@@ -428,12 +480,14 @@ namespace bhVk
 			VkImageView attachments[] = { colorView, depthStencilView };
 
 			VkFramebufferCreateInfo fbCI = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
-			fbCI.renderPass = g_renderPass;
-			fbCI.attachmentCount = 2;
-			fbCI.pAttachments = attachments;
-			fbCI.width = g_windowSize.width;
-			fbCI.height = g_windowSize.height;
-			fbCI.layers = 1;
+			{
+				fbCI.renderPass = g_renderPass;
+				fbCI.attachmentCount = 2;
+				fbCI.pAttachments = attachments;
+				fbCI.width = g_windowSize.width;
+				fbCI.height = g_windowSize.height;
+				fbCI.layers = 1;
+			}
 
 			if (vkCreateFramebuffer(g_renderDevice, &fbCI, GetAllocationCallbacks(), &(g_framebuffers[fbIdx].framebuffer)) != VK_SUCCESS)
 			{
@@ -494,12 +548,14 @@ namespace bhVk
 		}
 
 		VkRenderPassCreateInfo renderPassCI = { VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
-		renderPassCI.attachmentCount = 2;
-		renderPassCI.pAttachments = attachmentDescs;
-		renderPassCI.subpassCount = 1;
-		renderPassCI.pSubpasses = &subpassDesc;
-		renderPassCI.dependencyCount = 1;
-		renderPassCI.pDependencies = &subpassDep;
+		{
+			renderPassCI.attachmentCount = 2;
+			renderPassCI.pAttachments = attachmentDescs;
+			renderPassCI.subpassCount = 1;
+			renderPassCI.pSubpasses = &subpassDesc;
+			renderPassCI.dependencyCount = 1;
+			renderPassCI.pDependencies = &subpassDep;
+		}
 
 		return (vkCreateRenderPass(g_renderDevice, &renderPassCI, GetAllocationCallbacks(), &g_renderPass) == VK_SUCCESS);
 	}
@@ -657,13 +713,32 @@ namespace bhVk
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
 
-		if (ImGui_ImplSDL3_InitForOpenGL(window, glContext))
+		if (ImGui_ImplSDL3_InitForVulkan(window))
 		{
-			static const size_t VERSION_SRING_LEN = 16;
-			char versionString[VERSION_SRING_LEN];
-			sprintf_s(versionString, VERSION_SRING_LEN, "#version %d%d0", BH_GL_VERSION_MAJOR, BH_GL_VERSION_MINOR);
+			ImGui_ImplVulkan_PipelineInfo pipelineInfo = {};
+			{
+				pipelineInfo.RenderPass = g_renderPass;
+				//pipelineInfo.PipelineRenderingCreateInfo = ; //Setup if using dynamic rendering
+				//pipelineInfo.Subpass = ;
+			}
 
-			//ImGui_ImplVulkan_InitInfo vii;
+			ImGui_ImplVulkan_InitInfo vii = {};
+			{
+				vii.ApiVersion = BH_VK_API_VERSION;
+				vii.Instance = g_instance;
+				vii.PhysicalDevice = g_selectedRankedRenderDevice.physDevice;
+				vii.Device = g_renderDevice;
+				vii.QueueFamily = g_selectedRankedRenderDevice.preferredQueueFamily;
+				vii.Queue = g_renderQueue;
+				//vii.DescriptorPool = ;
+				vii.DescriptorPoolSize = 1;
+				vii.MinImageCount = BH_NUM_DISPLAY_BUFFERS;
+				vii.ImageCount = BH_NUM_DISPLAY_BUFFERS;
+				vii.PipelineInfoMain = pipelineInfo;
+				//vii.UseDynamicRendering = VK_TRUE; //See also pipelineInfo
+
+				//TODO: More optional fields to set up
+			}
 
 			if (ImGui_ImplVulkan_Init(&vii))
 			{
@@ -700,7 +775,7 @@ namespace bhVk
 	void EndImGuiFrame()
 	{
 		ImGui::Render();
-		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData());
+		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), g_commandBuffers[g_currSwapImgIndex]);
 	}
 
 	void ShowImGui(bool show)

@@ -63,6 +63,9 @@
     <ClCompile Include="..\..\thirdparty\imgui\backends\imgui_impl_vulkan.cpp">
       <Filter>thirdparty</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\bhGltf.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\bhConfig.hpp">
@@ -78,6 +81,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\bhVk.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bhGltf.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
