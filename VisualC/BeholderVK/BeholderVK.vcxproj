@@ -74,9 +74,9 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);BH_USE_GLM</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\volk;$(SolutionDir)\..\thirdparty\VulkanMemoryAllocator\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\glm;$(SolutionDir)\..\thirdparty\volk;$(SolutionDir)\..\thirdparty\VulkanMemoryAllocator\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\thirdparty\tinygltf;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -89,9 +89,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);BH_USE_GLM</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\volk;$(SolutionDir)\..\thirdparty\VulkanMemoryAllocator\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\glm;$(SolutionDir)\..\thirdparty\volk;$(SolutionDir)\..\thirdparty\VulkanMemoryAllocator\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\thirdparty\tinygltf;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -104,9 +104,9 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);BH_USE_GLM</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\volk;$(SolutionDir)\..\thirdparty\VulkanMemoryAllocator\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\glm;$(SolutionDir)\..\thirdparty\volk;$(SolutionDir)\..\thirdparty\VulkanMemoryAllocator\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\thirdparty\tinygltf;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -120,9 +120,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);BH_USE_GLM</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\volk;$(SolutionDir)\..\thirdparty\VulkanMemoryAllocator\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\glm;$(SolutionDir)\..\thirdparty\volk;$(SolutionDir)\..\thirdparty\VulkanMemoryAllocator\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\thirdparty\tinygltf;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -134,9 +134,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\bhConfig.cpp" />
+    <ClCompile Include="..\..\src\bhGlftImpl.cpp" />
     <ClCompile Include="..\..\src\bhGltf.cpp" />
     <ClCompile Include="..\..\src\bhLog.cpp" />
     <ClCompile Include="..\..\src\bhMainVk.cpp" />
+    <ClCompile Include="..\..\src\bhMesh.cpp" />
     <ClCompile Include="..\..\src\bhPlatform.cpp" />
     <ClCompile Include="..\..\src\bhUtil.cpp" />
     <ClCompile Include="..\..\src\bhVk.cpp" />
@@ -154,8 +156,11 @@
     <ClInclude Include="..\..\include\bhConfig.hpp" />
     <ClInclude Include="..\..\include\bhGltf.hpp" />
     <ClInclude Include="..\..\include\bhLog.hpp" />
+    <ClInclude Include="..\..\include\bhMesh.hpp" />
     <ClInclude Include="..\..\include\bhPlatform.hpp" />
     <ClInclude Include="..\..\include\bhUtil.hpp" />
+    <ClInclude Include="..\..\include\bhVec2.hpp" />
+    <ClInclude Include="..\..\include\bhVec3.hpp" />
     <ClInclude Include="..\..\include\bhVk.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

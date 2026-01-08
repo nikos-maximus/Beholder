@@ -76,7 +76,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\glm;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\thirdparty\tinygltf;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -92,7 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\glm;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\thirdparty\tinygltf;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -108,7 +108,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\glm;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\thirdparty\tinygltf;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -124,7 +124,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\glm;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\thirdparty\tinygltf;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -140,6 +140,7 @@
     <ClInclude Include="..\..\include\bhGltf.hpp" />
     <ClInclude Include="..\..\include\bhMat4.hpp" />
     <ClInclude Include="..\..\include\bhDefines.hpp" />
+    <ClInclude Include="..\..\include\bhMesh.hpp" />
     <ClInclude Include="..\..\include\bhTypes.hpp" />
     <ClInclude Include="..\..\include\bhVec2.hpp" />
     <ClInclude Include="..\..\include\bhVec3.hpp" />
@@ -148,8 +149,10 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\bhConfig.cpp" />
     <ClCompile Include="..\..\src\bhGl.cpp" />
+    <ClCompile Include="..\..\src\bhGlftImpl.cpp" />
     <ClCompile Include="..\..\src\bhGltf.cpp" />
     <ClCompile Include="..\..\src\bhLog.cpp" />
+    <ClCompile Include="..\..\src\bhMesh.cpp" />
     <ClCompile Include="..\..\src\bhPlatform.cpp" />
     <ClCompile Include="..\..\src\bhMainGl.cpp" />
     <ClCompile Include="..\..\src\bhUtil.cpp" />

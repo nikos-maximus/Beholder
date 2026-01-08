@@ -1,9 +1,16 @@
-#ifndef BH_SCALAR3_HPP
-#define BH_SCALAR3_HPP
+#ifndef BH_VEC3_HPP
+#define BH_VEC3_HPP
+
+#ifdef BH_USE_GLM
+
+#include <glm/vec3.hpp>
+using bhVec3f = glm::vec3;
+
+#else
 
 #include "bhTypes.hpp"
 
-struct bhFloat3
+struct bhVec3f
 {
 	union
 	{
@@ -18,27 +25,29 @@ struct bhFloat3
 		bhFloat_t _values[3];
 	};
 
-	bhFloat3()
+	bhVec3f()
 	{
 		_values[0] = _values[1] = _values[2] = bhFloat_t(0);
 	}
 
-	bhFloat3(bhFloat_t x, bhFloat_t y, bhFloat_t z)
+	bhVec3f(bhFloat_t x, bhFloat_t y, bhFloat_t z)
 	{
 		_values[0] = x;
 		_values[1] = y;
 		_values[2] = z;
 	}
 
-	bhFloat3 operator+(const bhFloat3& v) const
+	bhVec3f operator+(const bhVec3f& v) const
 	{
-		return bhFloat3(x * v.x, y * v.y, z * v.z);
+		return bhVec3f(x * v.x, y * v.y, z * v.z);
 	}
 
-	bhFloat3 operator*(bhFloat_t t) const
+	bhVec3f operator*(bhFloat_t t) const
 	{
-		return bhFloat3(x * t, y * t, z * t);
+		return bhVec3f(x * t, y * t, z * t);
 	}
 };
 
-#endif //BH_SCALAR3_HPP
+#endif //BH_USE_GLM
+
+#endif //BH_VEC3_HPP

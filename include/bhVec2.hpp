@@ -1,9 +1,16 @@
-#ifndef BH_SCALAR2_HPP
-#define BH_SCALAR2_HPP
+#ifndef BH_VEC2_HPP
+#define BH_VEC2_HPP
+
+#ifdef BH_USE_GLM
+
+#include <glm/vec2.hpp>
+using bhVec2f = glm::vec2;
+
+#else
 
 #include "bhTypes.hpp"
 
-struct bhFloat2
+struct bhVec2f
 {
 	union
 	{
@@ -18,16 +25,18 @@ struct bhFloat2
 		bhFloat_t _values[2];
 	};
 
-	bhFloat2()
+	bhVec2f()
 	{
 		_values[0] = _values[1] = bhFloat_t(0);
 	}
 
-	bhFloat2(bhFloat_t x, bhFloat_t y)
+	bhVec2f(bhFloat_t x, bhFloat_t y)
 	{
 		_values[0] = x;
 		_values[1] = y;
 	}
 };
 
-#endif //BH_SCALAR2_HPP
+#endif //BH_USE_GLM
+
+#endif //BH_VEC2_HPP

@@ -1,6 +1,6 @@
 #ifndef BH_GLTF_HPP
 #define BH_GLTF_HPP
-#include <bhMesh.h>
+#include "bhMesh.hpp"
 
 namespace tinygltf
 {
@@ -10,19 +10,9 @@ namespace tinygltf
 
 namespace bhGltf
 {
-  ////////////////////////////////////////////////////////////////////////////////
-  class bhMesh_gltf : public bhMesh
-  {
-  public:
-    bhMesh_gltf();
-    ~bhMesh_gltf();
-    bool Import(tinygltf::Model const& model, size_t meshIndex);
+  //////////////////////////////////////////////////////////////////////////////////
+  bool ImportMesh(const tinygltf::Mesh& mesh, const tinygltf::Model& model);
 
-  protected:
-  private:
-  };
-
-#if 0
   enum PrimitiveMode
   {
     POINTS,
@@ -69,7 +59,6 @@ namespace bhGltf
     AccessorType accessorType = ACCESSOR_TYPE_UNKNOWN;
     std::vector<CT>
   };
-#endif
 }
 
 #endif //BH_GLTF_HPP
