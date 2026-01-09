@@ -1,7 +1,6 @@
 #ifndef BH_MATH_HPP
 #define BH_MATH_HPP
 
-#include <assert.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
 

@@ -3,6 +3,10 @@
 #include <volk.h>
 #include <vk_mem_alloc.h>
 
+class bhMesh;
+
+struct SDL_Window;
+
 namespace bhVk
 {
   struct Buffer
@@ -32,6 +36,15 @@ namespace bhVk
 
   void BeginFrame();
   void EndFrame();
+
+  struct MeshMemory
+  {
+    VkBuffer buffer { VK_NULL_HANDLE };
+    VmaAllocation allocation { VK_NULL_HANDLE };
+  };
+
+  bool CreateMeshBuffer(bhMesh* mesh);
+  void DestroyMeshBuffer(bhMesh* mesh);
 }
 
 #endif //BH_VK_HPP

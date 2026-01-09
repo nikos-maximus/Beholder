@@ -5,6 +5,7 @@
 
 #include "bhDefines.hpp"
 #include "bhVk.hpp"
+#include "bhMesh.hpp"
 
 #ifdef SDL_PLATFORM_WINDOWS
 #define WIN32_LEAN_AND_MEAN
@@ -788,5 +789,46 @@ namespace bhVk
 		{
 			g_imguiFlags &= ~BH_IMGUI_FLAG_VISIBLE;
 		}
+	}
+
+	bool CreateMeshBuffer(bhMesh* mesh)
+	{
+		VkBufferCreateInfo bci = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		{
+			bci.size = mesh->GetVertsSiz() + mesh->GetIndsSiz();
+			bci.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+		}
+		VmaAllocationCreateInfo aci = {};
+		{
+			aci.flags =
+				VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
+				VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT |
+				VMA_ALLOCATION_CREATE_MAPPED_BIT;
+			aci.usage = VMA_MEMORY_USAGE_AUTO;
+		}
+
+		MeshMemory* mmem = new MeshMemory();
+		if (vmaCreateBuffer(g_renderDeviceAllocator, &bci, &aci, &(mmem->buffer), &(mmem->allocation), nullptr) == VK_SUCCESS)
+		{
+			void* bufferPtr = nullptr;
+			if (vmaMapMemory(g_renderDeviceAllocator, mmem->allocation, &bufferPtr) == VK_SUCCESS)
+			{
+				memcpy(bufferPtr, mesh->GetVertsData(), mesh->GetVertsSiz());
+				memcpy(reinterpret_cast<char*>(bufferPtr) + mesh->GetVertsSiz(), mesh->GetIndsData(), mesh->GetIndsSiz());
+				vmaUnmapMemory(g_renderDeviceAllocator, mmem->allocation);
+				mesh->GetApiImpl() = mmem;
+				return true;
+			}
+			vmaDestroyBuffer(g_renderDeviceAllocator, mmem->buffer, mmem->allocation);
+		}
+		return false;
+	}
+
+	void DestroyMeshBuffer(bhMesh* mesh)
+	{
+		MeshMemory*& mmem = reinterpret_cast<MeshMemory*&>(mesh->GetApiImpl());
+		vmaDestroyBuffer(g_renderDeviceAllocator, mmem->buffer, mmem->allocation);
+		delete mmem;
+		mmem = nullptr;
 	}
 }

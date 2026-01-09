@@ -51,7 +51,7 @@ namespace bhPlatform
         //"Shadersvk",
         //"Pipelines",
         //"Materials",
-        //"Meshes",
+        "Meshes",
         //"Characters",
         //"Sounds",
         "Maps",

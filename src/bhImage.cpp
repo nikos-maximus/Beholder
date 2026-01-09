@@ -1,4 +1,5 @@
 #include <SDL3/SDL_log.h>
+#include <SDL3/SDL_assert.h>
 #include <stb_image.h>
 #include "bhImage.hpp"
 #include "bhMathUtil.hpp"
@@ -26,7 +27,7 @@ int bhImage::DetermineDimensions() const
       }
     }
   }
-  assert((0 < dim) && (dim < 4));
+  SDL_assert((0 < dim) && (dim < 4));
   return dim;
 }
 
@@ -60,7 +61,7 @@ bhImage* bhImage::CreateEmpty(int w, int h, int numComponents)
 
 bhImage* bhImage::CreateFromFile(const char* filePath, int reqComponents)
 {
-  assert((0 <= reqComponents) && (reqComponents <= STBI_rgb_alpha));
+  SDL_assert((0 <= reqComponents) && (reqComponents <= STBI_rgb_alpha));
 
   bhImage* img = new bhImage();
   if (img)
@@ -147,7 +148,7 @@ uint32_t bhImage::GetRequiredMipLevels() const
 
 int bhImage::SavePPM_Text(const char* path)
 {
-  assert(numComponents >= 3);
+  SDL_assert(numComponents >= 3);
 
   FILE* file = nullptr;
   int result = fopen_s(&file, path, "w");
@@ -170,7 +171,7 @@ int bhImage::SavePPM_Text(const char* path)
 
 int bhImage::PutPixel(int x, int y, uint32_t color)
 {
-  assert(numComponents == 4);
+  SDL_assert(numComponents == 4);
 
   int result = ArePixelCoordsValid(x, y);
   if (result)

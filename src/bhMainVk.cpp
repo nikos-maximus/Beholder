@@ -16,8 +16,6 @@ int main(int argc, char* argv[])
     bhPlatform::SetDataDir(argv[1]);
   }
 
-  bhGltf::ImportFile();
-
   if (SDL_Init(SDL_INIT_VIDEO))
   {
     if (bhVk::CreateInstance())
@@ -32,6 +30,12 @@ int main(int argc, char* argv[])
       {
         if(bhVk::CreateRenderDevice(mainWindow))
         {
+          //DEBUG
+          const char* cubeFile = bhPlatform::CreateResourcePath(bhPlatform::ResourceType::RT_MESH, "Cube.glb");
+          bhGltf::ImportFile(cubeFile);
+          delete[] cubeFile;
+          //DEBUG
+
           SDL_ShowWindow(mainWindow); // TODO: Error check
           bool running = true;
           while (running)

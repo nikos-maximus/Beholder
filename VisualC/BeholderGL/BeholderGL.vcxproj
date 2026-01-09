@@ -76,7 +76,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\glm;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\thirdparty\tinygltf;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\glm;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\thirdparty\tinygltf;$(SolutionDir)\..\thirdparty\stb;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -92,7 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\glm;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\thirdparty\tinygltf;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\glm;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\thirdparty\tinygltf;$(SolutionDir)\..\thirdparty\stb;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -108,7 +108,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\glm;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\thirdparty\tinygltf;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\glm;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\thirdparty\tinygltf;$(SolutionDir)\..\thirdparty\stb;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -124,7 +124,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\glm;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\thirdparty\tinygltf;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\glm;$(SolutionDir)\..\thirdparty\gl3w\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\thirdparty\tinygltf;$(SolutionDir)\..\thirdparty\stb;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -138,6 +138,7 @@
     <ClInclude Include="..\..\include\bhConfig.hpp" />
     <ClInclude Include="..\..\include\bhGl.hpp" />
     <ClInclude Include="..\..\include\bhGltf.hpp" />
+    <ClInclude Include="..\..\include\bhHash.hpp" />
     <ClInclude Include="..\..\include\bhMat4.hpp" />
     <ClInclude Include="..\..\include\bhDefines.hpp" />
     <ClInclude Include="..\..\include\bhMesh.hpp" />
@@ -151,10 +152,12 @@
     <ClCompile Include="..\..\src\bhGl.cpp" />
     <ClCompile Include="..\..\src\bhGlftImpl.cpp" />
     <ClCompile Include="..\..\src\bhGltf.cpp" />
+    <ClCompile Include="..\..\src\bhHash.cpp" />
     <ClCompile Include="..\..\src\bhLog.cpp" />
     <ClCompile Include="..\..\src\bhMesh.cpp" />
     <ClCompile Include="..\..\src\bhPlatform.cpp" />
     <ClCompile Include="..\..\src\bhMainGl.cpp" />
+    <ClCompile Include="..\..\src\bhStbImpl.cpp" />
     <ClCompile Include="..\..\src\bhUtil.cpp" />
     <ClCompile Include="..\..\thirdparty\gl3w\src\gl3w.c" />
     <ClCompile Include="..\..\thirdparty\imgui\backends\imgui_impl_opengl3.cpp" />

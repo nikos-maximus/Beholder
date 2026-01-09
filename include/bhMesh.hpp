@@ -8,7 +8,7 @@
 class bhMesh
 {
 public:
-	using Index_t = uint32_t;
+	using Index_t = uint16_t;
 
 	struct Patch
 	{
@@ -30,11 +30,20 @@ public:
 
 	bool Create(const std::vector<std::vector<Vertex>>& vertsPerPatch, const std::vector<std::vector<Index_t>>& indsPerPatch);
 
+	const size_t GetVertsSiz() const { return verts.size() * sizeof(Vertex); }
+	const Vertex* GetVertsData() const { return verts.data(); }
+
+	const size_t GetIndsSiz() const { return inds.size() * sizeof(Index_t); }
+	const Index_t* GetIndsData()const { return inds.data(); }
+
+	void*& GetApiImpl() { return apiImpl; }
+
 protected:
 private:
 	std::vector<Vertex> verts;
 	std::vector<Index_t> inds;
 	std::vector<Patch> patches;
+	void* apiImpl { nullptr };
 };
 
 #endif //BH_MESH_HPP

@@ -1,3 +1,4 @@
+#include <SDL3/SDL_assert.h>
 #include "bhMesh.hpp"
 
 bool bhMesh::Create(const std::vector<std::vector<Vertex>>& vertsPerPatch, const std::vector<std::vector<Index_t>>& indsPerPatch)
@@ -5,7 +6,7 @@ bool bhMesh::Create(const std::vector<std::vector<Vertex>>& vertsPerPatch, const
 	size_t numPatces = vertsPerPatch.size();
 	if (numPatces != indsPerPatch.size())
 	{
-		assert(false);
+		SDL_assert(false);
 		return false;
 	}
 
@@ -14,14 +15,14 @@ bool bhMesh::Create(const std::vector<std::vector<Vertex>>& vertsPerPatch, const
 	{
 		if (vertsPerPatch[p].empty())
 		{
-			assert(false);
+			SDL_assert(false);
 			return false;
 		}
 		size_t numPatchVerts = vertsPerPatch[p].size();
 
 		if (indsPerPatch[p].empty())
 		{
-			assert(false);
+			SDL_assert(false);
 			return false;
 		}
 		size_t numPatchInds = indsPerPatch[p].size();

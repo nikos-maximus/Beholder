@@ -1,10 +1,7 @@
 #ifndef BH_HASH_HPP
 #define BH_HASH_HPP
 
-#include <stdint.h>
-#include "bhDefines.h"
-
-typedef size_t bhHash_t;
+using bhHash_t = size_t;
 
 // Matched return type with def of size_t
 // Assume stc C null-terminated str

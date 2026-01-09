@@ -11,7 +11,7 @@ namespace bhPlatform
     //RT_SHADER_BIN_VULKAN,
     //RT_PIPELINE,
     //RT_MATERIAL,
-    //RT_MESH,
+    RT_MESH,
     //RT_CHARACTER,
     //RT_SOUND,
     RT_MAP,

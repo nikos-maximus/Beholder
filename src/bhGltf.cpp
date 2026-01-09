@@ -1,7 +1,12 @@
+#include <SDL3/SDL_assert.h>
 #include <tiny_gltf.h>
 #include "bhLog.hpp"
 #include "bhMesh.hpp"
 #include "bhGltf.hpp"
+
+//DEBUG
+#include "bhVk.hpp"
+//DEBUG
 
 namespace bhGltf
 {
@@ -46,7 +51,7 @@ namespace bhGltf
 
   inline void CheckAccessorData(const tinygltf::Accessor& accessor, int type, int componentType)
   {
-    assert((accessor.type == type) && (accessor.componentType == componentType));
+    SDL_assert((accessor.type == type) && (accessor.componentType == componentType));
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -90,7 +95,7 @@ namespace bhGltf
           }
           case ATTR_TYPE_TANGENT:
           {
-            CheckAccessorData(accessor, TINYGLTF_TYPE_VEC3, TINYGLTF_COMPONENT_TYPE_FLOAT);
+            CheckAccessorData(accessor, TINYGLTF_TYPE_VEC4, TINYGLTF_COMPONENT_TYPE_FLOAT);
             primTangents.resize(accessor.count);
             memcpy(primTangents.data(), buffer.data.data(), accessor.count * sizeof(bhVec3f));
             break;
@@ -122,7 +127,10 @@ namespace bhGltf
         }
       }
 
-      assert(primPositions.size() == primNormals.size() == primTangents.size() == primUV0.size());
+      SDL_assert((primPositions.size() == primNormals.size()) &&
+        (primPositions.size() == primTangents.size()) &&
+        (primPositions.size() == primUV0.size()));
+
       size_t numVerts = primPositions.size();
       std::vector<bhMesh::Vertex> primVerts(numVerts);
       for (size_t v = 0; v < numVerts; ++v)
@@ -139,7 +147,7 @@ namespace bhGltf
       tinygltf::BufferView const& bufferView = model.bufferViews[accessor.bufferView];
       tinygltf::Buffer const& buffer = model.buffers[bufferView.buffer];
 
-      CheckAccessorData(accessor, TINYGLTF_TYPE_SCALAR, TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT);
+      CheckAccessorData(accessor, TINYGLTF_TYPE_SCALAR, TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT);
       primInds.resize(accessor.count);
       memcpy(primInds.data(), buffer.data.data(), accessor.count * sizeof(bhMesh::Index_t));
       indsPerPatch.push_back(std::move(primInds));
@@ -159,11 +167,11 @@ namespace bhGltf
     bool result = false;
 
     const std::string filePathStr(filePath);
-    if (filePathStr.rfind(".gltf"))  //ASCII file
+    if (filePathStr.rfind(".gltf") != std::string::npos)  //ASCII file
     {
       result = gltfContext.LoadASCIIFromFile(&model, &err, &warn, filePath);
     }
-    else if (filePathStr.rfind(".glb"))  //Binary file
+    else if (filePathStr.rfind(".glb") != std::string::npos)  //Binary file
     {
       result = gltfContext.LoadBinaryFromFile(&model, &err, &warn, filePath);
     }
@@ -190,6 +198,10 @@ namespace bhGltf
     for (const auto& mesh : model.meshes)
     {
       bhMesh* newMesh = ImportMesh(mesh, model);
+      //DEBUG
+      bhVk::CreateMeshBuffer(newMesh);
+      bhVk::DestroyMeshBuffer(newMesh);
+      //DEBUG
     }
 
     return true;
