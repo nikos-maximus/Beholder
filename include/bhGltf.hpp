@@ -1,17 +1,12 @@
 #ifndef BH_GLTF_HPP
 #define BH_GLTF_HPP
-#include "bhMesh.hpp"
 
-namespace tinygltf
-{
-    class Model;
-    struct Mesh;
-}
+class bhMesh;
 
 namespace bhGltf
 {
   //////////////////////////////////////////////////////////////////////////////////
-  bool ImportMesh(const tinygltf::Mesh& mesh, const tinygltf::Model& model);
+  bool ImportFile(const char* filePath);
 
   enum PrimitiveMode
   {
@@ -50,15 +45,15 @@ namespace bhGltf
     MAT4 = 16
   };
 
-  template<typename CT> struct  Accessor
-  {
-    int bufferView = -1;
-    int byteOffset = -1;
-    int count = 0;
-    ComponentType componentType = COMPONENT_TYPE_UNKNOWN;
-    AccessorType accessorType = ACCESSOR_TYPE_UNKNOWN;
-    std::vector<CT>
-  };
+  //template<typename CT> struct  Accessor
+  //{
+  //  int bufferView = -1;
+  //  int byteOffset = -1;
+  //  int count = 0;
+  //  ComponentType componentType = COMPONENT_TYPE_UNKNOWN;
+  //  AccessorType accessorType = ACCESSOR_TYPE_UNKNOWN;
+  //  std::vector<CT>
+  //};
 }
 
 #endif //BH_GLTF_HPP

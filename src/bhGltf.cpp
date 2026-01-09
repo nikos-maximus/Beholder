@@ -1,7 +1,6 @@
 #include <tiny_gltf.h>
 #include "bhLog.hpp"
-#include "bhVec2.hpp"
-#include "bhVec3.hpp"
+#include "bhMesh.hpp"
 #include "bhGltf.hpp"
 
 namespace bhGltf
@@ -51,19 +50,20 @@ namespace bhGltf
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  bool ImportMesh(const tinygltf::Mesh& mesh, const tinygltf::Model& model)
+  bhMesh* ImportMesh(const tinygltf::Mesh& mesh, const tinygltf::Model& model)
   {
     size_t numPatches = mesh.primitives.size();
-    std::vector<std::vector<bhVec3f>> tmpPositions(numPatches);
-    std::vector<std::vector<bhVec3f>> tmpNormals(numPatches);
-    std::vector<std::vector<bhVec3f>> tmpTangents(numPatches);
-    std::vector<std::vector<bhVec2f>> tmpUV0(numPatches);
-    //std::vector<std::vector<bhVec2f>> tmpTexcoord_1(numPatches);
-
-    std::vector<std::vector<uint32_t>> tmpInds(numPatches);
+    std::vector<std::vector<bhMesh::Vertex>> vertsPerPatch;
+    std::vector<std::vector<bhMesh::Index_t>> indsPerPatch;
 
     for (size_t primitiveIndex = 0; primitiveIndex < mesh.primitives.size(); ++primitiveIndex)
     {
+      std::vector<bhVec3f> primPositions;
+      std::vector<bhVec3f> primNormals;
+      std::vector<bhVec3f> primTangents;
+      std::vector<bhVec2f> primUV0;
+      std::vector<bhMesh::Index_t> primInds;
+
       tinygltf::Primitive const& primitive = mesh.primitives[primitiveIndex];
       for (auto const& attribute : primitive.attributes)
       {
@@ -77,43 +77,31 @@ namespace bhGltf
           case ATTR_TYPE_POSITION:
           {
             CheckAccessorData(accessor, TINYGLTF_TYPE_VEC3, TINYGLTF_COMPONENT_TYPE_FLOAT);
-            //bindingBits |= BINDING_MASK_POSITIONS;
-            tmpPositions[primitiveIndex].resize(accessor.count);
-            memcpy(tmpPositions[primitiveIndex].data(), buffer.data.data(), accessor.count * sizeof(bhVec3f));
+            primPositions.resize(accessor.count);
+            memcpy(primPositions.data(), buffer.data.data(), accessor.count * sizeof(bhVec3f));
             break;
           }
           case ATTR_TYPE_NORMAL:
           {
             CheckAccessorData(accessor, TINYGLTF_TYPE_VEC3, TINYGLTF_COMPONENT_TYPE_FLOAT);
-            //bindingBits |= BINDING_MASK_NORMALS;
-            tmpNormals[primitiveIndex].resize(accessor.count);
-            memcpy(tmpNormals[primitiveIndex].data(), buffer.data.data(), accessor.count * sizeof(bhVec3f));
+            primNormals.resize(accessor.count);
+            memcpy(primNormals.data(), buffer.data.data(), accessor.count * sizeof(bhVec3f));
             break;
           }
           case ATTR_TYPE_TANGENT:
           {
             CheckAccessorData(accessor, TINYGLTF_TYPE_VEC3, TINYGLTF_COMPONENT_TYPE_FLOAT);
-            //bindingBits |= BINDING_MASK_TANGENTS;
-            tmpTangents[primitiveIndex].resize(accessor.count);
-            memcpy(tmpTangents[primitiveIndex].data(), buffer.data.data(), accessor.count * sizeof(bhVec3f));
+            primTangents.resize(accessor.count);
+            memcpy(primTangents.data(), buffer.data.data(), accessor.count * sizeof(bhVec3f));
             break;
           }
           case ATTR_TYPE_TEXCOORD_0:
           {
             CheckAccessorData(accessor, TINYGLTF_TYPE_VEC2, TINYGLTF_COMPONENT_TYPE_FLOAT);
-            //bindingBits |= BINDING_MASK_UV_0;
-            tmpUV0[primitiveIndex].resize(accessor.count);
-            memcpy(tmpUV0[primitiveIndex].data(), buffer.data.data(), accessor.count * sizeof(bhVec2f));
+            primUV0.resize(accessor.count);
+            memcpy(primUV0.data(), buffer.data.data(), accessor.count * sizeof(bhVec2f));
             break;
           }
-          //case ATTR_TYPE_TEXCOORD_1:
-          //{
-          //  CheckAccessorData(accessor, TINYGLTF_TYPE_VEC2, TINYGLTF_COMPONENT_TYPE_FLOAT);
-          // //bindingBits |= BINDING_MASK_TEXCOORD_1;
-          // tmpTexcoord_1[primitiveIndex].resize(accessor.count);
-          // memcpy(tmpTexcoord_1[primitiveIndex].data(), buffer.data.data(), accessor.count * sizeof(bhVec2f));
-          // break;
-          //}
           case ATTR_TYPE_COLOR_0:
           {
             break;
@@ -134,49 +122,33 @@ namespace bhGltf
         }
       }
 
+      assert(primPositions.size() == primNormals.size() == primTangents.size() == primUV0.size());
+      size_t numVerts = primPositions.size();
+      std::vector<bhMesh::Vertex> primVerts(numVerts);
+      for (size_t v = 0; v < numVerts; ++v)
+      {
+        primVerts[v].position = primPositions[v];
+        primVerts[v].normal = primNormals[v];
+        primVerts[v].tangent = primTangents[v];
+        primVerts[v].uv0 = primUV0[v];
+      }
+      vertsPerPatch.push_back(std::move(primVerts));
+
       //Read Indices
       tinygltf::Accessor const& accessor = model.accessors[primitive.indices];
       tinygltf::BufferView const& bufferView = model.bufferViews[accessor.bufferView];
       tinygltf::Buffer const& buffer = model.buffers[bufferView.buffer];
 
       CheckAccessorData(accessor, TINYGLTF_TYPE_SCALAR, TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT);
-      tmpInds[primitiveIndex].resize(accessor.count);
-      memcpy(tmpInds[primitiveIndex].data(), buffer.data.data(), accessor.count * sizeof(uint32_t));
+      primInds.resize(accessor.count);
+      memcpy(primInds.data(), buffer.data.data(), accessor.count * sizeof(bhMesh::Index_t));
+      indsPerPatch.push_back(std::move(primInds));
     }
 
     bhMesh* newMesh = new bhMesh();
-    newMesh->Create();
+    newMesh->Create(vertsPerPatch, indsPerPatch);
 
-    ////Calculate number of vertices
-    //for (auto const& tp : tmpPositions)
-    //{
-    //  numVerts += tp.size();
-    //}
-    ////Check for proper number of normals
-    //uint16_t numNormals = 0;
-    //for (auto const& tn : tmpNormals)
-    //{
-    //  numNormals += tn.size();
-    //}
-    //assert(numVerts == numNormals);
-    ////Check for proper number of texcoords_0
-    //uint16_t numTexcoords_0 = 0;
-    //for (auto const& ttc0 : tmpTexcoord_0)
-    //{
-    //  numTexcoords_0 += ttc0.size();
-    //}
-    //assert(numVerts == numTexcoords_0);
-
-    //AllocateMem();
-
-    //uint16_t vertexOffset = 0;
-    //for (uint8_t p = 0; p < numPatches; ++p)
-    //{
-    //  memcpy(positions + vertexOffset, tmpPositions[p].data(), tmpPositions[p].size() * sizeof(bhVec3f));
-    //  //vertexOffset += tp.size();
-    //}
-
-    return true;
+    return newMesh;
   }
 
   bool ImportFile(const char* filePath)
@@ -213,6 +185,11 @@ namespace bhGltf
     {
       bhLog::Message(bhLog::LOG_CATEGORY_APPLICATION, bhLog::LOG_PRIORITY_ERROR, "Failed to import file ", filePath);
       return false;
+    }
+
+    for (const auto& mesh : model.meshes)
+    {
+      bhMesh* newMesh = ImportMesh(mesh, model);
     }
 
     return true;

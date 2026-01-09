@@ -4,6 +4,10 @@
 #include "bhPlatform.hpp"
 #include "bhVk.hpp"
 
+//DEBUG
+#include "bhGltf.hpp"
+//DEBUG
+
 ////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[])
 {
@@ -11,6 +15,8 @@ int main(int argc, char* argv[])
   {
     bhPlatform::SetDataDir(argv[1]);
   }
+
+  bhGltf::ImportFile();
 
   if (SDL_Init(SDL_INIT_VIDEO))
   {
