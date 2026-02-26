@@ -401,3 +401,6 @@ FodyWeavers.xsd
 
 # imgui
 imgui.ini
+
+# Submodules
+thirdparty/
