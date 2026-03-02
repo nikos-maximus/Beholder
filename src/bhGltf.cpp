@@ -63,10 +63,10 @@ namespace bhGltf
 
     for (size_t primitiveIndex = 0; primitiveIndex < mesh.primitives.size(); ++primitiveIndex)
     {
-      std::vector<bhVec3f> primPositions;
-      std::vector<bhVec3f> primNormals;
-      std::vector<bhVec3f> primTangents;
-      std::vector<bhVec2f> primUV0;
+      std::vector<glm::vec3> primPositions;
+      std::vector<glm::vec3> primNormals;
+      std::vector<glm::vec3> primTangents;
+      std::vector<glm::vec2> primUV0;
       std::vector<bhMesh::Index_t> primInds;
 
       tinygltf::Primitive const& primitive = mesh.primitives[primitiveIndex];
@@ -83,28 +83,28 @@ namespace bhGltf
           {
             CheckAccessorData(accessor, TINYGLTF_TYPE_VEC3, TINYGLTF_COMPONENT_TYPE_FLOAT);
             primPositions.resize(accessor.count);
-            memcpy(primPositions.data(), buffer.data.data(), accessor.count * sizeof(bhVec3f));
+            memcpy(primPositions.data(), buffer.data.data(), accessor.count * sizeof(glm::vec3));
             break;
           }
           case ATTR_TYPE_NORMAL:
           {
             CheckAccessorData(accessor, TINYGLTF_TYPE_VEC3, TINYGLTF_COMPONENT_TYPE_FLOAT);
             primNormals.resize(accessor.count);
-            memcpy(primNormals.data(), buffer.data.data(), accessor.count * sizeof(bhVec3f));
+            memcpy(primNormals.data(), buffer.data.data(), accessor.count * sizeof(glm::vec3));
             break;
           }
           case ATTR_TYPE_TANGENT:
           {
             CheckAccessorData(accessor, TINYGLTF_TYPE_VEC4, TINYGLTF_COMPONENT_TYPE_FLOAT);
             primTangents.resize(accessor.count);
-            memcpy(primTangents.data(), buffer.data.data(), accessor.count * sizeof(bhVec3f));
+            memcpy(primTangents.data(), buffer.data.data(), accessor.count * sizeof(glm::vec3));
             break;
           }
           case ATTR_TYPE_TEXCOORD_0:
           {
             CheckAccessorData(accessor, TINYGLTF_TYPE_VEC2, TINYGLTF_COMPONENT_TYPE_FLOAT);
             primUV0.resize(accessor.count);
-            memcpy(primUV0.data(), buffer.data.data(), accessor.count * sizeof(bhVec2f));
+            memcpy(primUV0.data(), buffer.data.data(), accessor.count * sizeof(glm::vec2));
             break;
           }
           case ATTR_TYPE_COLOR_0:

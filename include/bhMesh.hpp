@@ -2,8 +2,8 @@
 #define BH_MESH_HPP
 
 #include <vector>
-#include "bhVec2.hpp"
-#include "bhVec3.hpp"
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
 
 class bhMesh
 {
@@ -18,8 +18,8 @@ public:
 
 	struct Vertex
 	{
-		bhVec3f position, normal, tangent;
-		bhVec2f uv0;
+		glm::vec3 position, normal, tangent;
+		glm::vec2 uv0;
 	};
 
 	struct PatchCreateInfo

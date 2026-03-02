@@ -143,9 +143,6 @@
     <ClInclude Include="..\..\include\bhDefines.hpp" />
     <ClInclude Include="..\..\include\bhMesh.hpp" />
     <ClInclude Include="..\..\include\bhTypes.hpp" />
-    <ClInclude Include="..\..\include\bhVec2.hpp" />
-    <ClInclude Include="..\..\include\bhVec3.hpp" />
-    <ClInclude Include="..\..\include\bhVec4.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\bhConfig.cpp" />

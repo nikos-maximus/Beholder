@@ -2,6 +2,7 @@
 #define BH_VK_HPP
 #include <volk.h>
 #include <vk_mem_alloc.h>
+#include "bhCamera.hpp"
 
 class bhMesh;
 
@@ -11,22 +12,30 @@ namespace bhVk
 {
   struct Buffer
   {
+    VmaAllocation allocation{ VK_NULL_HANDLE };
     VkBuffer buffer { VK_NULL_HANDLE };
-    VmaAllocation allocation { VK_NULL_HANDLE };
   };
 
   struct Image
   {
+    VmaAllocation allocation{ VK_NULL_HANDLE };
     VkImage image { VK_NULL_HANDLE };
-    VmaAllocation allocation { VK_NULL_HANDLE };
   };
 
-  struct Framebuffer
+  struct ShaderData
   {
-    VkImageView colorView { VK_NULL_HANDLE };
-    Image depthStencilImage;
-    VkImageView depthStencilView { VK_NULL_HANDLE };
-    VkFramebuffer framebuffer { VK_NULL_HANDLE };
+    bhCamera::ViewProjection viewProj;
+    glm::mat4 model;
+    glm::vec4 lightPos;
+    VkBool32 selected{ VK_TRUE };
+  };
+
+  struct ShaderDataBuffer
+  {
+      VmaAllocation allocation{ VK_NULL_HANDLE };
+      VmaAllocationInfo allocationInfo;
+      VkBuffer buffer{ VK_NULL_HANDLE };
+      VkDeviceAddress deviceAddr;
   };
 
   bool CreateInstance();
@@ -45,6 +54,9 @@ namespace bhVk
 
   bool CreateMeshBuffer(bhMesh* mesh);
   void DestroyMeshBuffer(bhMesh* mesh);
+
+  bool CreateShaderDataBuffers();
+  void DestroyShaderDataBuffers();
 }
 
 #endif //BH_VK_HPP

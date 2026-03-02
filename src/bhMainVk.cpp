@@ -23,13 +23,15 @@ int main(int argc, char* argv[])
       bhConfig cfg;
       //bhConfig::Load()
       SDL_PropertiesID props = bhConfig::CreateProperties(cfg);
-      SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_VULKAN_BOOLEAN, true);
-
       SDL_Window* mainWindow = SDL_CreateWindowWithProperties(props);
       if (mainWindow)
       {
-        if(bhVk::CreateRenderDevice(mainWindow))
+        if (bhVk::CreateRenderDevice(mainWindow))
         {
+          //DEBUG
+          
+          //DEBUG
+
           //DEBUG
           const char* cubeFile = bhPlatform::CreateResourcePath(bhPlatform::ResourceType::RT_MESH, "Cube.glb");
           bhGltf::ImportFile(cubeFile);
@@ -61,6 +63,7 @@ int main(int argc, char* argv[])
         SDL_DestroyWindow(mainWindow);
       }
       bhVk::DestroyInstance();
+      bhConfig::DestroyProperties(props);
     }
     SDL_Quit();
     return 0;

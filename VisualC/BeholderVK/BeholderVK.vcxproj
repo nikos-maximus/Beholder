@@ -133,6 +133,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\bhCamera.cpp" />
     <ClCompile Include="..\..\src\bhConfig.cpp" />
     <ClCompile Include="..\..\src\bhGlftImpl.cpp" />
     <ClCompile Include="..\..\src\bhGltf.cpp" />
@@ -155,15 +156,15 @@
     <ClCompile Include="..\..\thirdparty\imgui\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\bhCamera.hpp" />
     <ClInclude Include="..\..\include\bhConfig.hpp" />
     <ClInclude Include="..\..\include\bhGltf.hpp" />
     <ClInclude Include="..\..\include\bhHash.hpp" />
     <ClInclude Include="..\..\include\bhLog.hpp" />
     <ClInclude Include="..\..\include\bhMesh.hpp" />
     <ClInclude Include="..\..\include\bhPlatform.hpp" />
+    <ClInclude Include="..\..\include\bhTransform.hpp" />
     <ClInclude Include="..\..\include\bhUtil.hpp" />
-    <ClInclude Include="..\..\include\bhVec2.hpp" />
-    <ClInclude Include="..\..\include\bhVec3.hpp" />
     <ClInclude Include="..\..\include\bhVk.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
