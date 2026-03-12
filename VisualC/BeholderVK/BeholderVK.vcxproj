@@ -106,12 +106,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);BH_USE_GLM</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\glm;$(SolutionDir)\..\thirdparty\volk;$(SolutionDir)\..\thirdparty\VulkanMemoryAllocator\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\thirdparty\tinygltf;$(SolutionDir)\..\thirdparty\stb;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\glm;$(SolutionDir)\..\thirdparty\volk;$(SolutionDir)\..\thirdparty\VulkanMemoryAllocator\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\thirdparty\tinygltf;$(SolutionDir)\..\thirdparty\stb;C:\Program Files\KTX-Software\include;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>"$(SolutionDir)\..\thirdparty\SDL\VisualC\x64\Debug\SDL3.lib";$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>C:\Program Files\KTX-Software\lib\ktx.lib;"$(SolutionDir)\..\thirdparty\SDL\VisualC\x64\Debug\SDL3.lib";$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -122,14 +122,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);BH_USE_GLM</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\glm;$(SolutionDir)\..\thirdparty\volk;$(SolutionDir)\..\thirdparty\VulkanMemoryAllocator\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\thirdparty\tinygltf;$(SolutionDir)\..\thirdparty\stb;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(SolutionDir)\..\thirdparty\SDL\include;$(SolutionDir)\..\thirdparty\glm;$(SolutionDir)\..\thirdparty\volk;$(SolutionDir)\..\thirdparty\VulkanMemoryAllocator\include;$(SolutionDir)\..\thirdparty\imgui;$(SolutionDir)\..\thirdparty\imgui\backends;$(SolutionDir)\..\thirdparty\tinygltf;$(SolutionDir)\..\thirdparty\stb;C:\Program Files\KTX-Software\include;$(SolutionDir)\..\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>"$(SolutionDir)\..\thirdparty\SDL\VisualC\x64\Release\SDL3.lib";$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>C:\Program Files\KTX-Software\lib\ktx.lib;"$(SolutionDir)\..\thirdparty\SDL\VisualC\x64\Release\SDL3.lib";$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

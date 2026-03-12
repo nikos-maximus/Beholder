@@ -17,6 +17,9 @@
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_vulkan.h>
 
+#include <ktx.h>
+#include <ktxvulkan.h>
+
 namespace bhVk
 {
 	struct RankedPhysicalDevice
@@ -27,7 +30,7 @@ namespace bhVk
 	};
 
 	static constexpr uint32_t BH_VK_API_VERSION = VK_API_VERSION_1_3;
-	static constexpr uint32_t BH_NUM_DISPLAY_BUFFERS{ 2 }; // a.k.a. Frames In Flight
+	static constexpr uint32_t BH_NUM_FRAMES_IN_FLIGHT{ 2 }; // a.k.a. Frames In Flight
 
 	static constexpr VkFormat g_presentImageFormat{ VK_FORMAT_B8G8R8A8_SRGB }, g_depthStencilFormat{ VK_FORMAT_D24_UNORM_S8_UINT };
 
@@ -38,14 +41,14 @@ namespace bhVk
 	static VmaAllocator g_renderDeviceAllocator{ VK_NULL_HANDLE };
 
 	static VkCommandPool g_commandPool{ VK_NULL_HANDLE };
-	static ShaderDataBuffer g_shaderDataBuffers[BH_NUM_DISPLAY_BUFFERS];
-	static VkCommandBuffer g_commandBuffers[BH_NUM_DISPLAY_BUFFERS]{ VK_NULL_HANDLE };
+	static ShaderDataBuffer g_shaderDataBuffers[BH_NUM_FRAMES_IN_FLIGHT];
+	static VkCommandBuffer g_commandBuffers[BH_NUM_FRAMES_IN_FLIGHT]{ VK_NULL_HANDLE };
 	static VkQueue g_renderQueue{ VK_NULL_HANDLE };
 
 	static VkSwapchainKHR g_swapchain{ VK_NULL_HANDLE };
-	static VkImage g_swapchainImages[BH_NUM_DISPLAY_BUFFERS]{ VK_NULL_HANDLE };
-	static VkImageView g_colorViews[BH_NUM_DISPLAY_BUFFERS];
-	static Image g_depthStencilImage;
+	static VkImage g_swapchainImages[BH_NUM_FRAMES_IN_FLIGHT]{ VK_NULL_HANDLE };
+	static VkImageView g_colorViews[BH_NUM_FRAMES_IN_FLIGHT]{ VK_NULL_HANDLE };
+	static Texture g_depthStencilImage;
 	static VkImageView g_depthStencilView{ VK_NULL_HANDLE };
 	static VkExtent2D g_windowSize;
 
@@ -53,22 +56,16 @@ namespace bhVk
 
 	static uint32_t g_currSwapImgIndex{ UINT32_MAX };
 
-	static VkSemaphore g_semaphoreImageAvailable{ VK_NULL_HANDLE };
-	static VkSemaphore g_semaphoreRenderFinished{ VK_NULL_HANDLE };
-	static VkFence g_drawFence{ VK_NULL_HANDLE };
+	static VkSemaphore g_semaphoresImageAvailable[BH_NUM_FRAMES_IN_FLIGHT]{ VK_NULL_HANDLE };
+	static VkSemaphore g_semaphoresRenderFinished[BH_NUM_FRAMES_IN_FLIGHT]{ VK_NULL_HANDLE };
+	static VkFence g_drawFences[BH_NUM_FRAMES_IN_FLIGHT]{ VK_NULL_HANDLE };
 
 	static constexpr uint8_t BH_IMGUI_FLAG_READY = BH_BIT(0);
 	static constexpr uint8_t BH_IMGUI_FLAG_VISIBLE = BH_BIT(1);
 
 	static uint8_t g_imguiFlags = 0;
 
-
-	__forceinline VkAllocationCallbacks* GetAllocationCallbacks()
-	{
-		//static VkAllocationCallbacks g_vkAllocationCallbacks = {};
-		//return &g_vkAllocationCallbacks;
-		return nullptr;
-	}
+	static VkAllocationCallbacks* g_allocator{ nullptr };
 
 	int CompareRankedDevice(const void* a, const void* b)
 	{
@@ -216,7 +213,7 @@ namespace bhVk
 
 		EnumInstanceExtensions(nullptr);
 
-		if (vkCreateInstance(&instanceCI, GetAllocationCallbacks(), &g_instance) == VK_SUCCESS)
+		if (vkCreateInstance(&instanceCI, g_allocator, &g_instance) == VK_SUCCESS)
 		{
 			volkLoadInstance(g_instance);
 			return true;
@@ -224,9 +221,194 @@ namespace bhVk
 		return false;
 	}
 
-	bool CreateSwapchain(SDL_Window* wnd);
-	bool CreateRenderPass();
-	bool CreateFramebuffers();
+	bool CreateSwapchain(SDL_Window* wnd)
+	{
+		VkSurfaceKHR wndSurface = VK_NULL_HANDLE;
+		if (!SDL_Vulkan_CreateSurface(wnd, g_instance, g_allocator, &wndSurface)) return false;
+
+		int ww, wh;
+		SDL_GetWindowSize(wnd, &ww, &wh);
+		g_windowSize.width = ww;
+		g_windowSize.height = wh;
+
+		VkExtent2D wSiz = { uint32_t(ww), uint32_t(wh) };
+
+		VkSwapchainCreateInfoKHR swapchainCI{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
+		{
+			swapchainCI.surface = wndSurface;
+			swapchainCI.minImageCount = BH_NUM_FRAMES_IN_FLIGHT;
+			swapchainCI.imageFormat = g_presentImageFormat;
+			swapchainCI.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+			swapchainCI.imageExtent = wSiz;
+			swapchainCI.imageArrayLayers = 1;
+			swapchainCI.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			swapchainCI.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+			//swapchainCI.queueFamilyIndexCount = ; //Relevant if not exclusive
+			//swapchainCI.pQueueFamilyIndices = ;
+			swapchainCI.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+			swapchainCI.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+			swapchainCI.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+			//swapchainCI.clipped = ;
+			//swapchainCI.oldSwapchain = ;
+		}
+
+		if (vkCreateSwapchainKHR(g_renderDevice, &swapchainCI, g_allocator, &g_swapchain) == VK_SUCCESS)
+		{
+			uint32_t numImages = BH_NUM_FRAMES_IN_FLIGHT;
+			return vkGetSwapchainImagesKHR(g_renderDevice, g_swapchain, &numImages, g_swapchainImages) == VK_SUCCESS;
+		}
+		return false;
+	}
+
+	bool CreateRenderPass()
+	{
+		VkAttachmentDescription attachmentDescs[2] = {};
+		{
+			attachmentDescs[0].format = VK_FORMAT_R8G8B8A8_UNORM;
+			attachmentDescs[0].samples = VK_SAMPLE_COUNT_1_BIT;
+			attachmentDescs[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			attachmentDescs[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			attachmentDescs[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			attachmentDescs[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+			attachmentDescs[1].format = g_depthStencilFormat;
+			attachmentDescs[1].samples = VK_SAMPLE_COUNT_1_BIT;
+			attachmentDescs[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			attachmentDescs[1].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			attachmentDescs[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			attachmentDescs[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			attachmentDescs[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		}
+
+		VkAttachmentReference attachmentRefs[2] = {};
+		{
+			attachmentRefs[0].attachment = 0;
+			attachmentRefs[0].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+			attachmentRefs[1].attachment = 1;
+			attachmentRefs[1].layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		}
+
+		VkSubpassDescription subpassDesc = {};
+		{
+			subpassDesc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+			subpassDesc.colorAttachmentCount = 1;
+			subpassDesc.pColorAttachments = &(attachmentRefs[0]);
+			subpassDesc.pDepthStencilAttachment = &(attachmentRefs[1]);
+		}
+
+		VkSubpassDependency subpassDep = {};
+		{
+			subpassDep.srcSubpass = VK_SUBPASS_EXTERNAL;
+			subpassDep.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			//subpassDep.srcAccessMask = 0;
+			subpassDep.dstSubpass = 0; //Index
+			subpassDep.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			subpassDep.dstStageMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		}
+
+		VkRenderPassCreateInfo renderPassCI = { VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
+		{
+			renderPassCI.attachmentCount = 2;
+			renderPassCI.pAttachments = attachmentDescs;
+			renderPassCI.subpassCount = 1;
+			renderPassCI.pSubpasses = &subpassDesc;
+			renderPassCI.dependencyCount = 1;
+			renderPassCI.pDependencies = &subpassDep;
+		}
+
+		return (vkCreateRenderPass(g_renderDevice, &renderPassCI, g_allocator, &g_renderPass) == VK_SUCCESS);
+	}
+
+	bool CreateFramebuffers()
+	{
+		for (uint32_t displayBufIdx = 0; displayBufIdx < BH_NUM_FRAMES_IN_FLIGHT; ++displayBufIdx)
+		{
+			VkImageViewCreateInfo colorViewCI = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+			{
+				colorViewCI.image = g_swapchainImages[displayBufIdx];
+				colorViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
+				colorViewCI.format = g_presentImageFormat;
+				//depthStencilViewCI.components = ; // All-zeroes is identity, so this should work as is (?)
+				colorViewCI.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+			}
+
+			vkCreateImageView(g_renderDevice, &colorViewCI, g_allocator, &(g_colorViews[displayBufIdx]));
+		}
+
+		VkImageCreateInfo depthStencilImageCI = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
+		{
+			depthStencilImageCI.imageType = VK_IMAGE_TYPE_2D;
+			depthStencilImageCI.format = g_depthStencilFormat;
+			depthStencilImageCI.extent = { g_windowSize.width, g_windowSize.height, 1 };
+			depthStencilImageCI.mipLevels = 1;
+			depthStencilImageCI.arrayLayers = 1;
+			depthStencilImageCI.samples = VK_SAMPLE_COUNT_1_BIT;
+			depthStencilImageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
+			depthStencilImageCI.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+			depthStencilImageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+			//depthStencilImageCI.queueFamilyIndexCount = 0;
+			//depthStencilImageCI.pQueueFamilyIndices = nullptr;
+			depthStencilImageCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		}
+		VmaAllocationCreateInfo allocationCI = {};
+		allocationCI.usage = VMA_MEMORY_USAGE_AUTO;
+
+		if (vmaCreateImage(g_renderDeviceAllocator, &depthStencilImageCI, &allocationCI, &(g_depthStencilImage.image), &(g_depthStencilImage.allocation), nullptr) == VK_SUCCESS)
+		{
+			VkImageViewCreateInfo depthStencilViewCI = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+			{
+				depthStencilViewCI.image = g_depthStencilImage.image;
+				depthStencilViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
+				depthStencilViewCI.format = g_depthStencilFormat;
+				//depthStencilViewCI.components = ; // All-zeroes is identity, so this should work as is (?)
+				depthStencilViewCI.subresourceRange = { VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT, 0, 1, 0, 1 };
+			}
+			vkCreateImageView(g_renderDevice, &depthStencilViewCI, g_allocator, &g_depthStencilView);
+		}
+
+		//VkImageView attachments[] = { g_colorViews[displayBufIdx], g_depthStencilView };
+
+		//VkFramebufferCreateInfo fbCI = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
+		//{
+		//	fbCI.renderPass = g_renderPass;
+		//	fbCI.attachmentCount = 2;
+		//	fbCI.pAttachments = attachments;
+		//	fbCI.width = g_windowSize.width;
+		//	fbCI.height = g_windowSize.height;
+		//	fbCI.layers = 1;
+		//}
+
+		//if (vkCreateFramebuffer(g_renderDevice, &fbCI, g_allocator, &(g_framebuffers[displayBufIdx].framebuffer)) != VK_SUCCESS)
+		//{
+		//	return false;
+		//}
+
+		return true;
+	}
+
+
+	bool CreateSyncObjects()
+	{
+		VkSemaphoreCreateInfo semaphoreCI = { VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
+		VkFenceCreateInfo fenceCI = { VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+		{
+			fenceCI.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+		}
+
+		bool result = true;
+		for (uint32_t i = 0; i < BH_NUM_FRAMES_IN_FLIGHT; ++i)
+		{
+			result &= (vkCreateSemaphore(g_renderDevice, &semaphoreCI, g_allocator, &(g_semaphoresRenderFinished[i])) == VK_SUCCESS);
+			result &= (vkCreateSemaphore(g_renderDevice, &semaphoreCI, g_allocator, &(g_semaphoresImageAvailable[i])) == VK_SUCCESS);
+			result &= (vkCreateFence(g_renderDevice, &fenceCI, g_allocator, &(g_drawFences[i])) == VK_SUCCESS);
+			if (!result) break;
+		}
+		return result;
+	}
 
 	bool CreateRenderDevice(SDL_Window* wnd)
 	{
@@ -303,7 +485,7 @@ namespace bhVk
 			deviceCI.pEnabledFeatures = &deviceFeatures;
 		}
 
-		error = vkCreateDevice(g_selectedRankedRenderDevice.physDevice, &deviceCI, GetAllocationCallbacks(), &g_renderDevice);
+		error = vkCreateDevice(g_selectedRankedRenderDevice.physDevice, &deviceCI, g_allocator, &g_renderDevice);
 		if (error)
 		{
 			// Figure out error?
@@ -347,7 +529,7 @@ namespace bhVk
 			commandPoolCI.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 			commandPoolCI.queueFamilyIndex = rankedPhysDevices[0].preferredQueueFamily;
 		}
-		error = vkCreateCommandPool(g_renderDevice, &commandPoolCI, GetAllocationCallbacks(), &g_commandPool);
+		error = vkCreateCommandPool(g_renderDevice, &commandPoolCI, g_allocator, &g_commandPool);
 		if (error)
 		{
 			// Figure out error?
@@ -358,7 +540,7 @@ namespace bhVk
 		{
 			cmdBufferAI.commandPool = g_commandPool;
 			cmdBufferAI.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-			cmdBufferAI.commandBufferCount = BH_NUM_DISPLAY_BUFFERS;
+			cmdBufferAI.commandBufferCount = BH_NUM_FRAMES_IN_FLIGHT;
 		}
 
 		error = vkAllocateCommandBuffers(g_renderDevice, &cmdBufferAI, g_commandBuffers);
@@ -371,237 +553,54 @@ namespace bhVk
 		if (!CreateSwapchain(wnd)) return false;
 		if (!CreateRenderPass()) return false;
 		if (!CreateFramebuffers()) return false;
-
-		VkSemaphoreCreateInfo semaphoreCI = { VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
-		error = vkCreateSemaphore(g_renderDevice, &semaphoreCI, GetAllocationCallbacks(), &g_semaphoreImageAvailable);
-		if (error)
-		{
-			// Figure out error?
-			return false;
-		}
-		error = vkCreateSemaphore(g_renderDevice, &semaphoreCI, GetAllocationCallbacks(), &g_semaphoreRenderFinished);
-		if (error)
-		{
-			// Figure out error?
-			return false;
-		}
-
-		VkFenceCreateInfo fenceCI = { VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
-		error = vkCreateFence(g_renderDevice, &fenceCI, GetAllocationCallbacks(), &g_drawFence);
-		if (error)
-		{
-			// Figure out error?
-			return false;
-		}
+		if (!CreateSyncObjects()) return false;
 
 		return true;
-	}
-
-	bool CreateSwapchain(SDL_Window* wnd)
-	{
-		VkSurfaceKHR wndSurface = VK_NULL_HANDLE;
-		if (!SDL_Vulkan_CreateSurface(wnd, g_instance, GetAllocationCallbacks(), &wndSurface)) return false;
-
-		int ww, wh;
-		SDL_GetWindowSize(wnd, &ww, &wh);
-		g_windowSize.width = ww;
-		g_windowSize.height = wh;
-
-		VkExtent2D wSiz = { uint32_t(ww), uint32_t(wh) };
-
-		VkSwapchainCreateInfoKHR swapchainCI{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
-		{
-			swapchainCI.surface = wndSurface;
-			swapchainCI.minImageCount = BH_NUM_DISPLAY_BUFFERS;
-			swapchainCI.imageFormat = g_presentImageFormat;
-			swapchainCI.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
-			swapchainCI.imageExtent = wSiz;
-			swapchainCI.imageArrayLayers = 1;
-			swapchainCI.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-			swapchainCI.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-			//swapchainCI.queueFamilyIndexCount = ; //Relevant if not exclusive
-			//swapchainCI.pQueueFamilyIndices = ;
-			swapchainCI.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-			swapchainCI.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-			swapchainCI.presentMode = VK_PRESENT_MODE_FIFO_KHR;
-			//swapchainCI.clipped = ;
-			//swapchainCI.oldSwapchain = ;
-		}
-
-		if (vkCreateSwapchainKHR(g_renderDevice, &swapchainCI, GetAllocationCallbacks(), &g_swapchain) == VK_SUCCESS)
-		{
-			uint32_t numImages = BH_NUM_DISPLAY_BUFFERS;
-			return vkGetSwapchainImagesKHR(g_renderDevice, g_swapchain, &numImages, g_swapchainImages) == VK_SUCCESS;
-		}
-		return false;
-	}
-
-	bool CreateFramebuffers()
-	{
-		for (uint32_t displayBufIdx = 0; displayBufIdx < BH_NUM_DISPLAY_BUFFERS; ++displayBufIdx)
-		{
-			VkImageViewCreateInfo colorViewCI = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-			{
-				colorViewCI.image = g_swapchainImages[displayBufIdx];
-				colorViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
-				colorViewCI.format = g_presentImageFormat;
-				//depthStencilViewCI.components = ; // All-zeroes is identity, so this should work as is (?)
-				colorViewCI.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-			}
-
-			vkCreateImageView(g_renderDevice, &colorViewCI, GetAllocationCallbacks(), &(g_colorViews[displayBufIdx]));
-		}
-
-		VkImageCreateInfo depthStencilImageCI = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
-		{
-			depthStencilImageCI.imageType = VK_IMAGE_TYPE_2D;
-			depthStencilImageCI.format = g_depthStencilFormat;
-			depthStencilImageCI.extent = { g_windowSize.width, g_windowSize.height, 1 };
-			depthStencilImageCI.mipLevels = 1;
-			depthStencilImageCI.arrayLayers = 1;
-			depthStencilImageCI.samples = VK_SAMPLE_COUNT_1_BIT;
-			depthStencilImageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
-			depthStencilImageCI.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-			depthStencilImageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-			//depthStencilImageCI.queueFamilyIndexCount = 0;
-			//depthStencilImageCI.pQueueFamilyIndices = nullptr;
-			depthStencilImageCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		}
-		VmaAllocationCreateInfo allocationCI = {};
-		allocationCI.usage = VMA_MEMORY_USAGE_AUTO;
-
-		if (vmaCreateImage(g_renderDeviceAllocator, &depthStencilImageCI, &allocationCI, &(g_depthStencilImage.image), &(g_depthStencilImage.allocation), nullptr) == VK_SUCCESS)
-		{
-			VkImageViewCreateInfo depthStencilViewCI = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-			{
-				depthStencilViewCI.image = g_depthStencilImage.image;
-				depthStencilViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
-				depthStencilViewCI.format = g_depthStencilFormat;
-				//depthStencilViewCI.components = ; // All-zeroes is identity, so this should work as is (?)
-				depthStencilViewCI.subresourceRange = { VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT, 0, 1, 0, 1 };
-			}
-			vkCreateImageView(g_renderDevice, &depthStencilViewCI, GetAllocationCallbacks(), &g_depthStencilView);
-		}
-
-		//VkImageView attachments[] = { g_colorViews[displayBufIdx], g_depthStencilView };
-
-		//VkFramebufferCreateInfo fbCI = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
-		//{
-		//	fbCI.renderPass = g_renderPass;
-		//	fbCI.attachmentCount = 2;
-		//	fbCI.pAttachments = attachments;
-		//	fbCI.width = g_windowSize.width;
-		//	fbCI.height = g_windowSize.height;
-		//	fbCI.layers = 1;
-		//}
-
-		//if (vkCreateFramebuffer(g_renderDevice, &fbCI, GetAllocationCallbacks(), &(g_framebuffers[displayBufIdx].framebuffer)) != VK_SUCCESS)
-		//{
-		//	return false;
-		//}
-
-		return true;
-	}
-
-	bool CreateRenderPass()
-	{
-		VkAttachmentDescription attachmentDescs[2] = {};
-		{
-			attachmentDescs[0].format = VK_FORMAT_R8G8B8A8_UNORM;
-			attachmentDescs[0].samples = VK_SAMPLE_COUNT_1_BIT;
-			attachmentDescs[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-			attachmentDescs[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-			attachmentDescs[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-			attachmentDescs[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-			attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-			attachmentDescs[1].format = g_depthStencilFormat;
-			attachmentDescs[1].samples = VK_SAMPLE_COUNT_1_BIT;
-			attachmentDescs[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-			attachmentDescs[1].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-			attachmentDescs[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-			attachmentDescs[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-			attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			attachmentDescs[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-		}
-
-		VkAttachmentReference attachmentRefs[2] = {};
-		{
-			attachmentRefs[0].attachment = 0;
-			attachmentRefs[0].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-			attachmentRefs[1].attachment = 1;
-			attachmentRefs[1].layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-		}
-
-		VkSubpassDescription subpassDesc = {};
-		{
-			subpassDesc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-			subpassDesc.colorAttachmentCount = 1;
-			subpassDesc.pColorAttachments = &(attachmentRefs[0]);
-			subpassDesc.pDepthStencilAttachment = &(attachmentRefs[1]);
-		}
-
-		VkSubpassDependency subpassDep = {};
-		{
-			subpassDep.srcSubpass = VK_SUBPASS_EXTERNAL;
-			subpassDep.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-			//subpassDep.srcAccessMask = 0;
-			subpassDep.dstSubpass = 0; //Index
-			subpassDep.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-			subpassDep.dstStageMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		}
-
-		VkRenderPassCreateInfo renderPassCI = { VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
-		{
-			renderPassCI.attachmentCount = 2;
-			renderPassCI.pAttachments = attachmentDescs;
-			renderPassCI.subpassCount = 1;
-			renderPassCI.pSubpasses = &subpassDesc;
-			renderPassCI.dependencyCount = 1;
-			renderPassCI.pDependencies = &subpassDep;
-		}
-
-		return (vkCreateRenderPass(g_renderDevice, &renderPassCI, GetAllocationCallbacks(), &g_renderPass) == VK_SUCCESS);
 	}
 
 	void DestroyFramebuffers()
 	{
-		vkDestroyImageView(g_renderDevice, g_depthStencilView, GetAllocationCallbacks());
+		vkDestroyImageView(g_renderDevice, g_depthStencilView, g_allocator);
 		vmaDestroyImage(g_renderDeviceAllocator, g_depthStencilImage.image, g_depthStencilImage.allocation);
 
 		//for (uint32_t colorImgIdx = 0; colorImgIdx < BH_NUM_DISPLAY_BUFFERS; ++colorImgIdx)
 		//{
 		//	//Framebuffer& currFB = g_framebuffers[displayBufIdx];
 
-		//	vkDestroyImageView(g_renderDevice, g_colorViews[colorImgIdx], GetAllocationCallbacks());
-		//	vkDestroyFramebuffer(g_renderDevice, currFB.framebuffer, GetAllocationCallbacks());
+		//	vkDestroyImageView(g_renderDevice, g_colorViews[colorImgIdx], g_allocator);
+		//	vkDestroyFramebuffer(g_renderDevice, currFB.framebuffer, g_allocator);
 		//}
+	}
+
+	void DestroySyncObjects()
+	{
+		for (uint32_t i = 0; i < BH_NUM_FRAMES_IN_FLIGHT; ++i)
+		{
+			vkDestroySemaphore(g_renderDevice, g_semaphoresRenderFinished[i], g_allocator);
+			vkDestroySemaphore(g_renderDevice, g_semaphoresImageAvailable[i], g_allocator);
+			vkDestroyFence(g_renderDevice, g_drawFences[i], g_allocator);
+		}
 	}
 
 	void DestroyRenderDevice()
 	{
 		if (vkDeviceWaitIdle(g_renderDevice) == VK_SUCCESS)
 		{
-			vkDestroyFence(g_renderDevice, g_drawFence, GetAllocationCallbacks());
+			DestroySyncObjects();
 
-			vkDestroySemaphore(g_renderDevice, g_semaphoreRenderFinished, GetAllocationCallbacks());
-			vkDestroySemaphore(g_renderDevice, g_semaphoreImageAvailable, GetAllocationCallbacks());
-
-			vkDestroyRenderPass(g_renderDevice, g_renderPass, GetAllocationCallbacks());
+			vkDestroyRenderPass(g_renderDevice, g_renderPass, g_allocator);
 			DestroyFramebuffers();
-			vkFreeCommandBuffers(g_renderDevice, g_commandPool, BH_NUM_DISPLAY_BUFFERS, g_commandBuffers);
-			vkDestroySwapchainKHR(g_renderDevice, g_swapchain, GetAllocationCallbacks());
-			vkDestroyCommandPool(g_renderDevice, g_commandPool, GetAllocationCallbacks());
+			vkFreeCommandBuffers(g_renderDevice, g_commandPool, BH_NUM_FRAMES_IN_FLIGHT, g_commandBuffers);
+			vkDestroySwapchainKHR(g_renderDevice, g_swapchain, g_allocator);
+			vkDestroyCommandPool(g_renderDevice, g_commandPool, g_allocator);
 			vmaDestroyAllocator(g_renderDeviceAllocator);
-			vkDestroyDevice(g_renderDevice, GetAllocationCallbacks());
+			vkDestroyDevice(g_renderDevice, g_allocator);
 		}
 	}
 
 	void DestroyInstance()
 	{
-		vkDestroyInstance(g_instance, GetAllocationCallbacks());
+		vkDestroyInstance(g_instance, g_allocator);
 		//SDL_Vulkan_UnloadLibrary();
 		volkFinalize();
 	}
@@ -616,7 +615,7 @@ namespace bhVk
 		static constexpr float CLEAR_DEPTH = 1.0f;
 		static constexpr uint32_t CLEAR_STENCIL = 0;
 
-		vkAcquireNextImageKHR(g_renderDevice, g_swapchain, UINT64_MAX, g_semaphoreImageAvailable, VK_NULL_HANDLE, &g_currSwapImgIndex);
+		vkAcquireNextImageKHR(g_renderDevice, g_swapchain, UINT64_MAX, g_semaphoresImageAvailable[g_currSwapImgIndex], VK_NULL_HANDLE, &g_currSwapImgIndex);
 
 		VkCommandBuffer& currCommandBuffer = g_commandBuffers[g_currSwapImgIndex];
 		VkCommandBufferBeginInfo commandBufferBI = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
@@ -689,25 +688,27 @@ namespace bhVk
 		VkSubmitInfo submitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
 		{
 			submitInfo.waitSemaphoreCount = 1;
-			submitInfo.pWaitSemaphores = &g_semaphoreImageAvailable;
+			submitInfo.pWaitSemaphores = &(g_semaphoresImageAvailable[g_currSwapImgIndex]);
 			submitInfo.pWaitDstStageMask = waitStages;
 			submitInfo.commandBufferCount = 1;
 			submitInfo.pCommandBuffers = &(currCommandBuffer);
 			submitInfo.signalSemaphoreCount = 1;
-			submitInfo.pSignalSemaphores = &g_semaphoreRenderFinished;
+			submitInfo.pSignalSemaphores = &(g_semaphoresRenderFinished[g_currSwapImgIndex]);
 		}
-		vkQueueSubmit(g_renderQueue, 1, &submitInfo, g_drawFence);
 
-		vkWaitForFences(g_renderDevice, 1, &g_drawFence, VK_TRUE, UINT64_MAX);
-		vkResetFences(g_renderDevice, 1, &g_drawFence);
+		VkFence& currFence = g_drawFences[g_currSwapImgIndex];
+		vkQueueSubmit(g_renderQueue, 1, &submitInfo, currFence);
+
+		vkWaitForFences(g_renderDevice, 1, &currFence, VK_TRUE, UINT64_MAX);
+		vkResetFences(g_renderDevice, 1, &currFence);
 
 		VkPresentInfoKHR presentInfo = { VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
 		{
 			presentInfo.waitSemaphoreCount = 1;
-			presentInfo.pWaitSemaphores = &g_semaphoreRenderFinished;
+			presentInfo.pWaitSemaphores = &(g_semaphoresRenderFinished[g_currSwapImgIndex]);
 			presentInfo.swapchainCount = 1;
-			presentInfo.pSwapchains = &(g_swapchain);
-			presentInfo.pImageIndices = &(g_currSwapImgIndex);
+			presentInfo.pSwapchains = &g_swapchain;
+			presentInfo.pImageIndices = &g_currSwapImgIndex;
 		}
 		vkQueuePresentKHR(g_renderQueue, &presentInfo);
 		//++frameCount;
@@ -740,8 +741,8 @@ namespace bhVk
 				vii.Queue = g_renderQueue;
 				//vii.DescriptorPool = ;
 				vii.DescriptorPoolSize = 1;
-				vii.MinImageCount = BH_NUM_DISPLAY_BUFFERS;
-				vii.ImageCount = BH_NUM_DISPLAY_BUFFERS;
+				vii.MinImageCount = BH_NUM_FRAMES_IN_FLIGHT;
+				vii.ImageCount = BH_NUM_FRAMES_IN_FLIGHT;
 				vii.PipelineInfoMain = pipelineInfo;
 				//vii.UseDynamicRendering = VK_TRUE; //See also pipelineInfo
 
@@ -855,7 +856,7 @@ namespace bhVk
 			aci.usage = VMA_MEMORY_USAGE_AUTO;
 		}
 
-		for (uint32_t dataBufferIdx = 0; dataBufferIdx < BH_NUM_DISPLAY_BUFFERS; ++dataBufferIdx)
+		for (uint32_t dataBufferIdx = 0; dataBufferIdx < BH_NUM_FRAMES_IN_FLIGHT; ++dataBufferIdx)
 		{
 			ShaderDataBuffer& sd = g_shaderDataBuffers[dataBufferIdx];
 			if (vmaCreateBuffer(g_renderDeviceAllocator, &bci, &aci, &(sd.buffer), &(sd.allocation), &(sd.allocationInfo)) == VK_SUCCESS)
@@ -867,10 +868,179 @@ namespace bhVk
 				sd.deviceAddr = vkGetBufferDeviceAddress(g_renderDevice, &bdaInfo);
 			}
 		}
+
+		//DEBUG
+		return false;
 	}
 
 	void DestroyShaderDataBuffers()
 	{
+		for (uint32_t dataBufferIdx = 0; dataBufferIdx < BH_NUM_FRAMES_IN_FLIGHT; ++dataBufferIdx)
+		{
+			ShaderDataBuffer& sd = g_shaderDataBuffers[dataBufferIdx];
+			vmaDestroyBuffer(g_renderDeviceAllocator, sd.buffer, sd.allocation);
+		}
+	}
 
+	bool CreateTexture(const char* filePath)
+	{
+		ktxTexture* textureKTX = nullptr;
+		if (ktxTexture_CreateFromNamedFile(filePath, ktxTextureCreateFlagBits::KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &textureKTX) != KTX_SUCCESS)
+		{
+			return false;
+		}
+
+		VkImageCreateInfo imgCI{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
+		{
+			imgCI.imageType = VK_IMAGE_TYPE_2D;
+			imgCI.format = ktxTexture_GetVkFormat(textureKTX);
+			imgCI.extent = { textureKTX->baseWidth, textureKTX->baseHeight, textureKTX->baseDepth }; SDL_assert(textureKTX->baseDepth == 1);
+			imgCI.mipLevels = textureKTX->numLevels;
+			imgCI.arrayLayers = textureKTX->numLayers; SDL_assert(textureKTX->numLayers == 1);
+			imgCI.samples = VK_SAMPLE_COUNT_1_BIT;
+			imgCI.tiling = VK_IMAGE_TILING_OPTIMAL;
+			imgCI.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+			imgCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		}
+		VmaAllocationCreateInfo textureACI;
+		{
+			textureACI.usage = VMA_MEMORY_USAGE_AUTO;
+		}
+		Texture newTexture;
+		if (vmaCreateImage(g_renderDeviceAllocator, &imgCI, &textureACI, &(newTexture.image), &(newTexture.allocation), nullptr) != VK_SUCCESS)
+		{
+			return false;
+		}
+
+		VkImageViewCreateInfo imgViewCI{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+		{
+			imgViewCI.image = newTexture.image;
+			imgViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
+			imgViewCI.format = imgCI.format;
+			{
+				imgViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				imgViewCI.subresourceRange.levelCount = textureKTX->numLevels;
+				imgViewCI.subresourceRange.layerCount = textureKTX->numLayers; //SDL_assert(texture->numLayers == 1);
+			}
+		}
+		VkImageView newView = VK_NULL_HANDLE;
+		if (vkCreateImageView(g_renderDevice, &imgViewCI, g_allocator, &newView) != VK_SUCCESS)
+		{
+			return false;
+		}
+
+		Buffer imgSrc;
+		VkBufferCreateInfo imgSrcCI = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		{
+			imgSrcCI.size = textureKTX->dataSize;
+			imgSrcCI.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		}
+		VmaAllocationCreateInfo imgSrcACI;
+		{
+			imgSrcACI.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
+			imgSrcACI.usage = VMA_MEMORY_USAGE_AUTO;
+		}
+		VmaAllocationInfo allocInfo;
+		if (vmaCreateBuffer(g_renderDeviceAllocator, &imgSrcCI, &imgSrcACI, &(imgSrc.buffer), &(imgSrc.allocation), &allocInfo) != VK_SUCCESS)
+		{
+			return false;
+		}
+		memcpy(allocInfo.pMappedData, textureKTX->pData, textureKTX->dataSize);
+
+		VkFenceCreateInfo fenceCI{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+		VkFence oneTimeFence{ VK_NULL_HANDLE };
+		if (vkCreateFence(g_renderDevice, &fenceCI, g_allocator, &oneTimeFence) != VK_SUCCESS)
+		{
+			return false;
+		}
+
+		VkCommandBuffer oneTimeCB{ VK_NULL_HANDLE };
+		VkCommandBufferAllocateInfo oneTimeCbAI{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
+		{
+			oneTimeCbAI.commandPool = g_commandPool;
+			oneTimeCbAI.commandBufferCount = 1;
+		}
+		if (vkAllocateCommandBuffers(g_renderDevice, &oneTimeCbAI, &oneTimeCB) != VK_SUCCESS)
+		{
+			return false;
+		}
+
+		VkCommandBufferBeginInfo oneTimeCbBI{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+		{
+			oneTimeCbBI.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+		}
+		if (vkBeginCommandBuffer(oneTimeCB, &oneTimeCbBI) == VK_SUCCESS)
+		{
+			VkImageMemoryBarrier2 barrierTexImage{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2 };
+			{
+				barrierTexImage.srcStageMask = VK_PIPELINE_STAGE_2_NONE;
+				barrierTexImage.srcAccessMask = VK_ACCESS_2_NONE;
+				barrierTexImage.dstStageMask = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
+				barrierTexImage.dstAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT;
+				barrierTexImage.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+				barrierTexImage.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+				barrierTexImage.image = newTexture.image;
+				{
+					barrierTexImage.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+					barrierTexImage.subresourceRange.levelCount = textureKTX->numLevels;
+					barrierTexImage.subresourceRange.layerCount = textureKTX->numLayers; //SDL_assert(texture->numLayers == 1);
+				}
+			}
+			VkDependencyInfo barrierTexInfo{ VK_STRUCTURE_TYPE_DEPENDENCY_INFO };
+			{
+				barrierTexInfo.imageMemoryBarrierCount = 1;
+				barrierTexInfo.pImageMemoryBarriers = &barrierTexImage;
+			}
+			vkCmdPipelineBarrier2(oneTimeCB, &barrierTexInfo);
+
+			std::vector<VkBufferImageCopy> copyRegions(textureKTX->numLevels);
+			for (ktx_uint32_t l = 0; l < textureKTX->numLevels; ++l)
+			{
+				ktx_size_t mipOffset{ 0 };
+				KTX_error_code ret = ktxTexture_GetImageOffset(textureKTX, l, 0, 0, &mipOffset);
+				VkBufferImageCopy& cr = copyRegions[l];
+				{
+					cr.bufferOffset = mipOffset;
+
+					cr.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+					cr.imageSubresource.mipLevel = l;
+					cr.imageSubresource.layerCount = 1;
+
+					cr.imageExtent.width = textureKTX->baseWidth >> l;
+					cr.imageExtent.height = textureKTX->baseHeight >> l;
+					cr.imageExtent.depth = 1;
+				}
+			}
+			vkCmdCopyBufferToImage(oneTimeCB, imgSrc.buffer, newTexture.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, uint32_t(copyRegions.size()), copyRegions.data());
+
+			VkImageMemoryBarrier2 barrierTexRead{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2 };
+			{
+				barrierTexRead.srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
+				barrierTexRead.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+				barrierTexRead.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+				barrierTexRead.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+				barrierTexRead.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+				barrierTexRead.newLayout = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;
+				barrierTexRead.image = newTexture.image;
+
+				barrierTexRead.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				barrierTexRead.subresourceRange.levelCount = textureKTX->numLevels;
+				barrierTexRead.subresourceRange.layerCount = 1;
+			}
+			barrierTexInfo.pImageMemoryBarriers = &barrierTexRead;
+			vkCmdPipelineBarrier2(oneTimeCB, &barrierTexInfo);
+
+			vkEndCommandBuffer(oneTimeCB); // == VK_SUCCESS;
+		}
+
+		VkSubmitInfo oneTimeSI{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
+		{
+			oneTimeSI.commandBufferCount = 1;
+			oneTimeSI.pCommandBuffers = &oneTimeCB;
+		}
+		vkQueueSubmit(g_renderQueue, 1, &oneTimeSI, oneTimeFence); //TODO: Check
+		vkWaitForFences(g_renderDevice, 1, &oneTimeFence, VK_TRUE, UINT64_MAX); //TODO: Check
+
+		return true;
 	}
 }

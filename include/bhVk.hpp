@@ -16,7 +16,7 @@ namespace bhVk
     VkBuffer buffer { VK_NULL_HANDLE };
   };
 
-  struct Image
+  struct Texture
   {
     VmaAllocation allocation{ VK_NULL_HANDLE };
     VkImage image { VK_NULL_HANDLE };
