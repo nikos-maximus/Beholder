@@ -31,6 +31,7 @@ namespace bhVk
 
 	static constexpr uint32_t BH_VK_API_VERSION = VK_API_VERSION_1_3;
 	static constexpr uint32_t BH_NUM_FRAMES_IN_FLIGHT{ 2 }; // a.k.a. Frames In Flight
+	static std::vector<Texture> g_textures;
 
 	static constexpr VkFormat g_presentImageFormat{ VK_FORMAT_B8G8R8A8_SRGB }, g_depthStencilFormat{ VK_FORMAT_D24_UNORM_S8_UINT };
 
@@ -66,6 +67,7 @@ namespace bhVk
 	static uint8_t g_imguiFlags = 0;
 
 	static VkAllocationCallbacks* g_allocator{ nullptr };
+	static std::vector<VkDescriptorImageInfo> g_textureDescriptors;
 
 	int CompareRankedDevice(const void* a, const void* b)
 	{
@@ -882,8 +884,10 @@ namespace bhVk
 		}
 	}
 
-	bool CreateTexture(const char* filePath)
+	bool CreateTextureFromFile(const char* filePath)
 	{
+		//See also: VK_EXT_host_image_copy, VK_KHR_unified_image_layouts
+
 		ktxTexture* textureKTX = nullptr;
 		if (ktxTexture_CreateFromNamedFile(filePath, ktxTextureCreateFlagBits::KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &textureKTX) != KTX_SUCCESS)
 		{
@@ -906,6 +910,7 @@ namespace bhVk
 		{
 			textureACI.usage = VMA_MEMORY_USAGE_AUTO;
 		}
+
 		Texture newTexture;
 		if (vmaCreateImage(g_renderDeviceAllocator, &imgCI, &textureACI, &(newTexture.image), &(newTexture.allocation), nullptr) != VK_SUCCESS)
 		{
@@ -1041,6 +1046,87 @@ namespace bhVk
 		vkQueueSubmit(g_renderQueue, 1, &oneTimeSI, oneTimeFence); //TODO: Check
 		vkWaitForFences(g_renderDevice, 1, &oneTimeFence, VK_TRUE, UINT64_MAX); //TODO: Check
 
+		VkSamplerCreateInfo samplerCI{ VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
+		{
+			samplerCI.magFilter = VK_FILTER_LINEAR;
+			samplerCI.minFilter = VK_FILTER_LINEAR;
+			samplerCI.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+			samplerCI.anisotropyEnable = VK_TRUE;
+			samplerCI.maxAnisotropy = 8.0f;
+			samplerCI.maxLod = float(textureKTX->numLevels);
+		}
+		VkSampler newSampler{ VK_NULL_HANDLE };
+		vkCreateSampler(g_renderDevice, &samplerCI, g_allocator, &newSampler); //TODO: Check
+
+		ktxTexture_Destroy(textureKTX);
+		
+		g_textureDescriptors.push_back({ newSampler,newView ,VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL });
+
+		g_textures.push_back(newTexture);
 		return true;
+	}
+
+	bool SetupDescriptors()
+	{
+		VkDescriptorBindingFlags descBindFlags{ VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT };
+		VkDescriptorSetLayoutBindingFlagsCreateInfo descBindingFlagsCI{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO };
+		{
+			descBindingFlagsCI.bindingCount = 1;
+			descBindingFlagsCI.pBindingFlags = &descBindFlags;
+		}
+		VkDescriptorSetLayoutBinding descLayoutBindingTex{};
+		{
+			descLayoutBindingTex.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			descLayoutBindingTex.descriptorCount = uint32_t(g_textures.size());
+			descLayoutBindingTex.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+		}
+		VkDescriptorSetLayoutCreateInfo descLayoutTexCI{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
+		{
+			descLayoutTexCI.pNext = &descBindFlags;
+			descLayoutTexCI.bindingCount = 1;
+			descLayoutTexCI.pBindings = &descLayoutBindingTex;
+		}
+		VkDescriptorSetLayout descSetLayout{ VK_NULL_HANDLE };
+		vkCreateDescriptorSetLayout(g_renderDevice, &descLayoutTexCI, nullptr, &descSetLayout);
+
+		VkDescriptorPoolSize descPoolSiz;
+		{
+			descPoolSiz.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			descPoolSiz.descriptorCount = uint32_t(g_textures.size());
+		}
+		VkDescriptorPoolCreateInfo descPoolCI{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
+		{
+			descPoolCI.maxSets = 1;
+			descPoolCI.poolSizeCount = 1;
+			descPoolCI.pPoolSizes = &descPoolSiz;
+		}
+		VkDescriptorPool descPool{ VK_NULL_HANDLE };
+		vkCreateDescriptorPool(g_renderDevice, &descPoolCI, g_allocator, &descPool);
+
+		uint32_t variableDescCount{ static_cast<uint32_t>(g_textures.size()) };
+		VkDescriptorSetVariableDescriptorCountAllocateInfo variableDescCountAI{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO_EXT };
+		{
+			variableDescCountAI.descriptorSetCount = 1;
+			variableDescCountAI.pDescriptorCounts = &variableDescCount;
+		}
+		VkDescriptorSetAllocateInfo texDescSetAlloc{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+		{
+			texDescSetAlloc.pNext = &variableDescCountAI;
+			texDescSetAlloc.descriptorPool = descPool;
+			texDescSetAlloc.descriptorSetCount = 1;
+			texDescSetAlloc.pSetLayouts = &descSetLayout;
+		};
+		VkDescriptorSet descriptorSetTex{ VK_NULL_HANDLE };
+		vkAllocateDescriptorSets(g_renderDevice, &texDescSetAlloc, &descriptorSetTex);
+
+		VkWriteDescriptorSet writeDescSet{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+		{
+			writeDescSet.dstSet = descriptorSetTex;
+			writeDescSet.dstBinding = 0;
+			writeDescSet.descriptorCount = uint32_t(g_textureDescriptors.size());
+			writeDescSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			writeDescSet.pImageInfo = g_textureDescriptors.data();
+		}
+		vkUpdateDescriptorSets(g_renderDevice, 1, &writeDescSet, 0, nullptr);
 	}
 }
