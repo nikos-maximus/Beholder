@@ -8,7 +8,7 @@ namespace bhLog
   {
     static char g_logString[BH_LOG_MESSAGE_SIZ];
 
-    // TODO:
+    //TODO:
     // a. See how to enrich output using SDL_LOG_CATEGORY_
     // b. Can output to, say xml file as planned using SDL_LogSetOutputFunction
 

@@ -404,3 +404,6 @@ imgui.ini
 
 # Submodules
 thirdparty/
+
+# Generated assets
+[Dd]ata/[Ss]haders/

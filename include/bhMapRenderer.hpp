@@ -1,7 +1,7 @@
 #ifndef BH_WORLD_RENDERER_SDL3_HPP
 #define BH_WORLD_RENDERER_SDL3_HPP
 
-#include <SDL3/SDL.h> // TODO: Reduce this to necessary
+#include <SDL3/SDL.h> //TODO: Reduce this to necessary
 
 class bhMap;
 

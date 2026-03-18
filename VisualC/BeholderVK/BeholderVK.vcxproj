@@ -167,6 +167,10 @@
     <ClInclude Include="..\..\include\bhUtil.hpp" />
     <ClInclude Include="..\..\include\bhVk.hpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Data\CompileShaders.cmd" />
+    <None Include="..\..\Data\Shader_src\Shader01.slang" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

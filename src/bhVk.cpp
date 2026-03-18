@@ -6,6 +6,8 @@
 #include "bhDefines.hpp"
 #include "bhVk.hpp"
 #include "bhMesh.hpp"
+#include "bhUtil.hpp"
+#include "bhPlatform.hpp"
 
 #ifdef SDL_PLATFORM_WINDOWS
 #define WIN32_LEAN_AND_MEAN
@@ -68,6 +70,7 @@ namespace bhVk
 
 	static VkAllocationCallbacks* g_allocator{ nullptr };
 	static std::vector<VkDescriptorImageInfo> g_textureDescriptors;
+	static VkDescriptorSetLayout g_descSetLayout{ VK_NULL_HANDLE };
 
 	int CompareRankedDevice(const void* a, const void* b)
 	{
@@ -174,7 +177,7 @@ namespace bhVk
 		if (volkInitialize() != VK_SUCCESS) return false;
 		//if (!SDL_Vulkan_LoadLibrary(nullptr)) return false;
 
-		VkApplicationInfo appInfo = { VK_STRUCTURE_TYPE_APPLICATION_INFO };
+		VkApplicationInfo appInfo{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
 		{
 			appInfo.pApplicationName = "Beholder";
 			appInfo.applicationVersion = 1;
@@ -183,7 +186,7 @@ namespace bhVk
 			appInfo.apiVersion = BH_VK_API_VERSION;
 		}
 
-		VkInstanceCreateInfo instanceCI = { VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
+		VkInstanceCreateInfo instanceCI{ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
 		{
 			instanceCI.pApplicationInfo = &appInfo;
 		}
@@ -233,7 +236,7 @@ namespace bhVk
 		g_windowSize.width = ww;
 		g_windowSize.height = wh;
 
-		VkExtent2D wSiz = { uint32_t(ww), uint32_t(wh) };
+		VkExtent2D wSiz{ uint32_t(ww), uint32_t(wh) };
 
 		VkSwapchainCreateInfoKHR swapchainCI{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
 		{
@@ -312,7 +315,7 @@ namespace bhVk
 			subpassDep.dstStageMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 		}
 
-		VkRenderPassCreateInfo renderPassCI = { VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
+		VkRenderPassCreateInfo renderPassCI{ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
 		{
 			renderPassCI.attachmentCount = 2;
 			renderPassCI.pAttachments = attachmentDescs;
@@ -329,7 +332,7 @@ namespace bhVk
 	{
 		for (uint32_t displayBufIdx = 0; displayBufIdx < BH_NUM_FRAMES_IN_FLIGHT; ++displayBufIdx)
 		{
-			VkImageViewCreateInfo colorViewCI = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+			VkImageViewCreateInfo colorViewCI{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
 			{
 				colorViewCI.image = g_swapchainImages[displayBufIdx];
 				colorViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
@@ -341,7 +344,7 @@ namespace bhVk
 			vkCreateImageView(g_renderDevice, &colorViewCI, g_allocator, &(g_colorViews[displayBufIdx]));
 		}
 
-		VkImageCreateInfo depthStencilImageCI = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
+		VkImageCreateInfo depthStencilImageCI{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
 		{
 			depthStencilImageCI.imageType = VK_IMAGE_TYPE_2D;
 			depthStencilImageCI.format = g_depthStencilFormat;
@@ -361,7 +364,7 @@ namespace bhVk
 
 		if (vmaCreateImage(g_renderDeviceAllocator, &depthStencilImageCI, &allocationCI, &(g_depthStencilImage.image), &(g_depthStencilImage.allocation), nullptr) == VK_SUCCESS)
 		{
-			VkImageViewCreateInfo depthStencilViewCI = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+			VkImageViewCreateInfo depthStencilViewCI{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
 			{
 				depthStencilViewCI.image = g_depthStencilImage.image;
 				depthStencilViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
@@ -374,7 +377,7 @@ namespace bhVk
 
 		//VkImageView attachments[] = { g_colorViews[displayBufIdx], g_depthStencilView };
 
-		//VkFramebufferCreateInfo fbCI = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
+		//VkFramebufferCreateInfo fbCI{ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
 		//{
 		//	fbCI.renderPass = g_renderPass;
 		//	fbCI.attachmentCount = 2;
@@ -395,8 +398,8 @@ namespace bhVk
 
 	bool CreateSyncObjects()
 	{
-		VkSemaphoreCreateInfo semaphoreCI = { VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
-		VkFenceCreateInfo fenceCI = { VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+		VkSemaphoreCreateInfo semaphoreCI{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
+		VkFenceCreateInfo fenceCI{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
 		{
 			fenceCI.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 		}
@@ -443,17 +446,17 @@ namespace bhVk
 		g_selectedRankedRenderDevice = rankedPhysDevices[0];
 
 		constexpr uint32_t numQueues = 1;
-		const float priorities[numQueues] = { 1.0f };
+		const float priorities[numQueues]{ 1.0f };
 
-		VkDeviceQueueCreateInfo queueCI = { VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
+		VkDeviceQueueCreateInfo queueCI{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
 		queueCI.queueFamilyIndex = rankedPhysDevices[0].preferredQueueFamily;
 		queueCI.queueCount = numQueues;
 		queueCI.pQueuePriorities = priorities;
 
-		VkPhysicalDeviceVulkan11Features device11Features = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES };
+		VkPhysicalDeviceVulkan11Features device11Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES };
 		{}
 
-		VkPhysicalDeviceVulkan12Features device12Features = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
+		VkPhysicalDeviceVulkan12Features device12Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
 		{
 			device12Features.pNext = &device11Features;
 			device12Features.descriptorIndexing = VK_TRUE;
@@ -462,7 +465,7 @@ namespace bhVk
 			device12Features.bufferDeviceAddress = VK_TRUE;
 		}
 
-		VkPhysicalDeviceVulkan13Features device13Features = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES };
+		VkPhysicalDeviceVulkan13Features device13Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES };
 		{
 			device13Features.pNext = &device12Features;
 			device13Features.synchronization2 = VK_TRUE;
@@ -475,9 +478,9 @@ namespace bhVk
 		}
 
 		constexpr uint32_t numExtensions = 1;
-		const char* extensionNames[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+		const char* extensionNames[]{ VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
-		VkDeviceCreateInfo deviceCI = { VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
+		VkDeviceCreateInfo deviceCI{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
 		{
 			deviceCI.pNext = &device13Features;
 			deviceCI.queueCreateInfoCount = 1;
@@ -526,7 +529,7 @@ namespace bhVk
 		vkGetDeviceQueue(g_renderDevice, rankedPhysDevices[0].preferredQueueFamily, 0, &g_renderQueue);
 
 		// Create Command Pool
-		VkCommandPoolCreateInfo commandPoolCI = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
+		VkCommandPoolCreateInfo commandPoolCI{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
 		{
 			commandPoolCI.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 			commandPoolCI.queueFamilyIndex = rankedPhysDevices[0].preferredQueueFamily;
@@ -538,7 +541,7 @@ namespace bhVk
 			return false;
 		}
 
-		VkCommandBufferAllocateInfo cmdBufferAI = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
+		VkCommandBufferAllocateInfo cmdBufferAI{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
 		{
 			cmdBufferAI.commandPool = g_commandPool;
 			cmdBufferAI.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -620,7 +623,7 @@ namespace bhVk
 		vkAcquireNextImageKHR(g_renderDevice, g_swapchain, UINT64_MAX, g_semaphoresImageAvailable[g_currSwapImgIndex], VK_NULL_HANDLE, &g_currSwapImgIndex);
 
 		VkCommandBuffer& currCommandBuffer = g_commandBuffers[g_currSwapImgIndex];
-		VkCommandBufferBeginInfo commandBufferBI = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+		VkCommandBufferBeginInfo commandBufferBI{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
 		{
 			commandBufferBI.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 		}
@@ -640,7 +643,7 @@ namespace bhVk
 			clearValues[1].depthStencil.depth = CLEAR_DEPTH;
 			clearValues[1].depthStencil.stencil = CLEAR_STENCIL;
 		}
-		VkRenderPassBeginInfo renderPassBI = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
+		VkRenderPassBeginInfo renderPassBI{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 		{
 			renderPassBI.renderPass = g_renderPass;
 			//renderPassBI.framebuffer = g_framebuffers[g_currSwapImgIndex].framebuffer;
@@ -685,9 +688,9 @@ namespace bhVk
 		vkCmdEndRenderPass(currCommandBuffer);
 		vkEndCommandBuffer(currCommandBuffer);
 
-		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		VkPipelineStageFlags waitStages[]{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 
-		VkSubmitInfo submitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
+		VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
 		{
 			submitInfo.waitSemaphoreCount = 1;
 			submitInfo.pWaitSemaphores = &(g_semaphoresImageAvailable[g_currSwapImgIndex]);
@@ -704,7 +707,7 @@ namespace bhVk
 		vkWaitForFences(g_renderDevice, 1, &currFence, VK_TRUE, UINT64_MAX);
 		vkResetFences(g_renderDevice, 1, &currFence);
 
-		VkPresentInfoKHR presentInfo = { VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
+		VkPresentInfoKHR presentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
 		{
 			presentInfo.waitSemaphoreCount = 1;
 			presentInfo.pWaitSemaphores = &(g_semaphoresRenderFinished[g_currSwapImgIndex]);
@@ -803,7 +806,7 @@ namespace bhVk
 
 	bool CreateMeshBuffer(bhMesh* mesh)
 	{
-		VkBufferCreateInfo bci = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		VkBufferCreateInfo bci{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 		{
 			bci.size = mesh->GetVertsSiz() + mesh->GetIndsSiz();
 			bci.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
@@ -844,7 +847,7 @@ namespace bhVk
 
 	bool CreateShaderDataBuffers()
 	{
-		VkBufferCreateInfo bci = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		VkBufferCreateInfo bci{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 		{
 			bci.size = sizeof(ShaderData);
 			bci.usage = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
@@ -863,7 +866,7 @@ namespace bhVk
 			ShaderDataBuffer& sd = g_shaderDataBuffers[dataBufferIdx];
 			if (vmaCreateBuffer(g_renderDeviceAllocator, &bci, &aci, &(sd.buffer), &(sd.allocation), &(sd.allocationInfo)) == VK_SUCCESS)
 			{
-				VkBufferDeviceAddressInfo bdaInfo = { VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO };
+				VkBufferDeviceAddressInfo bdaInfo{ VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO };
 				{
 					bdaInfo.buffer = sd.buffer;
 				}
@@ -935,7 +938,7 @@ namespace bhVk
 		}
 
 		Buffer imgSrc;
-		VkBufferCreateInfo imgSrcCI = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		VkBufferCreateInfo imgSrcCI{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 		{
 			imgSrcCI.size = textureKTX->dataSize;
 			imgSrcCI.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
@@ -1086,8 +1089,10 @@ namespace bhVk
 			descLayoutTexCI.bindingCount = 1;
 			descLayoutTexCI.pBindings = &descLayoutBindingTex;
 		}
-		VkDescriptorSetLayout descSetLayout{ VK_NULL_HANDLE };
-		vkCreateDescriptorSetLayout(g_renderDevice, &descLayoutTexCI, nullptr, &descSetLayout);
+		if (vkCreateDescriptorSetLayout(g_renderDevice, &descLayoutTexCI, nullptr, &g_descSetLayout) != VK_SUCCESS)
+		{
+			return false;
+		}
 
 		VkDescriptorPoolSize descPoolSiz;
 		{
@@ -1101,7 +1106,10 @@ namespace bhVk
 			descPoolCI.pPoolSizes = &descPoolSiz;
 		}
 		VkDescriptorPool descPool{ VK_NULL_HANDLE };
-		vkCreateDescriptorPool(g_renderDevice, &descPoolCI, g_allocator, &descPool);
+		if (vkCreateDescriptorPool(g_renderDevice, &descPoolCI, g_allocator, &descPool) != VK_SUCCESS)
+		{
+			return false;
+		}
 
 		uint32_t variableDescCount{ static_cast<uint32_t>(g_textures.size()) };
 		VkDescriptorSetVariableDescriptorCountAllocateInfo variableDescCountAI{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO_EXT };
@@ -1114,10 +1122,13 @@ namespace bhVk
 			texDescSetAlloc.pNext = &variableDescCountAI;
 			texDescSetAlloc.descriptorPool = descPool;
 			texDescSetAlloc.descriptorSetCount = 1;
-			texDescSetAlloc.pSetLayouts = &descSetLayout;
+			texDescSetAlloc.pSetLayouts = &g_descSetLayout;
 		};
 		VkDescriptorSet descriptorSetTex{ VK_NULL_HANDLE };
-		vkAllocateDescriptorSets(g_renderDevice, &texDescSetAlloc, &descriptorSetTex);
+		if (vkAllocateDescriptorSets(g_renderDevice, &texDescSetAlloc, &descriptorSetTex) != VK_SUCCESS)
+		{
+			return false;
+		}
 
 		VkWriteDescriptorSet writeDescSet{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
 		{
@@ -1128,5 +1139,210 @@ namespace bhVk
 			writeDescSet.pImageInfo = g_textureDescriptors.data();
 		}
 		vkUpdateDescriptorSets(g_renderDevice, 1, &writeDescSet, 0, nullptr);
+		return true;
+	}
+
+	VkShaderModule CreateShaderModule(const char* filePath)
+	{
+		bhUtil::FileData fData = bhUtil::ReadFile(filePath, true);
+		if (!fData.IsValid()) return VK_NULL_HANDLE;
+
+		if (fData.length % sizeof(*VkShaderModuleCreateInfo::pCode)) return VK_NULL_HANDLE; // SPIR-V requirement: VkShaderModuleCreateInfo::pCode is uint32_t*
+
+		VkShaderModuleCreateInfo smCI{ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
+		{
+			smCI.codeSize = fData.length;
+			smCI.pCode = static_cast<uint32_t*>(fData.data);
+		}
+
+		VkShaderModule shaderModule{ VK_NULL_HANDLE };
+		if (vkCreateShaderModule(g_renderDevice, &smCI, g_allocator, &shaderModule) == VK_SUCCESS)
+		{
+			return shaderModule;
+		}
+		return VK_NULL_HANDLE;
+	}
+
+	bool CreatePipeline()
+	{
+		////////////////////////////////////////////////////////////////////////////////
+		//Rendering
+		VkPipelineRenderingCreateInfo renderingCI{ VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO };
+		{
+			renderingCI.colorAttachmentCount = 1;
+			renderingCI.pColorAttachmentFormats = &g_presentImageFormat;
+			renderingCI.depthAttachmentFormat = g_depthStencilFormat;
+		}
+
+		////////////////////////////////////////////////////////////////////////////////
+		//Shader state
+		VkShaderModule shader01 = CreateShaderModule(bhPlatform::CreateResourcePath(bhPlatform::ResourceType::RT_SHADER, "Shader01.out"));
+		if (!shader01) return false;
+
+		VkPipelineShaderStageCreateInfo shaderStageCI[2]{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
+		{
+			shaderStageCI[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+			shaderStageCI[0].module = shader01;
+			shaderStageCI[0].pName = "main";
+
+			shaderStageCI[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+			shaderStageCI[1].module = shader01;
+			shaderStageCI[1].pName = "main";
+		}
+
+		////////////////////////////////////////////////////////////////////////////////
+		//Vertex input state
+		VkVertexInputBindingDescription vertexBindingDesc{};
+		{
+			vertexBindingDesc.binding = 0;
+			vertexBindingDesc.stride = sizeof(bhMesh::Vertex);
+			vertexBindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+		}
+
+		std::vector<VkVertexInputAttributeDescription> vertexAttribs(4);
+		{
+			//Position
+			vertexAttribs[0].location = 0;
+			vertexAttribs[0].binding = 0;
+			vertexAttribs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+			//vertexAttribs[0].offset = ; //TODO: Check runtime value
+
+			//Normal
+			vertexAttribs[1].location = 1;
+			vertexAttribs[1].binding = 0;
+			vertexAttribs[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+			vertexAttribs[1].offset = offsetof(bhMesh::Vertex, bhMesh::Vertex::normal);
+
+			//Tangent
+			vertexAttribs[2].location = 2;
+			vertexAttribs[2].binding = 0;
+			vertexAttribs[2].format = VK_FORMAT_R32G32B32_SFLOAT;
+			vertexAttribs[2].offset = offsetof(bhMesh::Vertex, bhMesh::Vertex::tangent);
+
+			//UV0
+			vertexAttribs[3].location = 3;
+			vertexAttribs[3].binding = 0;
+			vertexAttribs[3].format = VK_FORMAT_R32G32_SFLOAT;
+			vertexAttribs[3].offset = offsetof(bhMesh::Vertex, bhMesh::Vertex::uv0);
+		}
+
+		VkPipelineVertexInputStateCreateInfo vertexInputStateCI{ VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
+		{
+			vertexInputStateCI.vertexBindingDescriptionCount = 1;
+			vertexInputStateCI.pVertexBindingDescriptions = &vertexBindingDesc;
+			vertexInputStateCI.vertexAttributeDescriptionCount = uint32_t(vertexAttribs.size());
+			vertexInputStateCI.pVertexAttributeDescriptions = vertexAttribs.data();
+		}
+
+		////////////////////////////////////////////////////////////////////////////////
+		//Input assembly state
+		VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCI{ VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO };
+		{
+			inputAssemblyStateCI.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		}
+
+		////////////////////////////////////////////////////////////////////////////////
+		//Viewport state
+		VkPipelineViewportStateCreateInfo viewportStateCI{ VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO };
+		{
+			viewportStateCI.viewportCount = 1;
+			viewportStateCI.scissorCount = 1;
+		}
+
+		////////////////////////////////////////////////////////////////////////////////
+		//Rasterization state
+		VkPipelineRasterizationStateCreateInfo rasterizationStateCI{ VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO };
+		{
+			rasterizationStateCI.lineWidth = 1.0f;
+		}
+
+		////////////////////////////////////////////////////////////////////////////////
+		//Multisample state
+		VkPipelineMultisampleStateCreateInfo multisampleStateCI{ VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO };
+		{
+			multisampleStateCI.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+		}
+
+		////////////////////////////////////////////////////////////////////////////////
+		//DepthStencil state
+		VkPipelineDepthStencilStateCreateInfo depthStencilStateCI{ VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
+		{
+			depthStencilStateCI.depthTestEnable = VK_TRUE;
+			depthStencilStateCI.depthWriteEnable = VK_TRUE;
+			depthStencilStateCI.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+		}
+		
+		////////////////////////////////////////////////////////////////////////////////
+		//Colorblend state
+		VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+		{
+			colorBlendAttachment.colorWriteMask = 0xF;
+		}
+
+		VkPipelineColorBlendStateCreateInfo colorBlendStateCI{ VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO };
+		{
+			colorBlendStateCI.attachmentCount = 1;
+			colorBlendStateCI.pAttachments = &colorBlendAttachment;
+		}
+
+		////////////////////////////////////////////////////////////////////////////////
+		//Dynamic state
+		std::vector<VkDynamicState> dynamicStates{ VK_DYNAMIC_STATE_VIEWPORT,VK_DYNAMIC_STATE_SCISSOR };
+
+		VkPipelineDynamicStateCreateInfo dynamicStateCI{ VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO };
+		{
+			dynamicStateCI.dynamicStateCount = uint32_t(dynamicStates.size());
+			dynamicStateCI.pDynamicStates = dynamicStates.data();
+		}
+
+		////////////////////////////////////////////////////////////////////////////////
+		//Layout
+		VkPushConstantRange pushConstRange{};
+		{
+			pushConstRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+			pushConstRange.size = sizeof(VkDeviceAddress);
+		}
+
+		VkPipelineLayoutCreateInfo layoutCI{ VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO };
+		{
+			layoutCI.setLayoutCount = 1;
+			layoutCI.pSetLayouts = &g_descSetLayout;
+			layoutCI.pushConstantRangeCount = 1;
+			layoutCI.pPushConstantRanges = &pushConstRange;
+		}
+
+		VkPipelineLayout pipelineLayout{ VK_NULL_HANDLE };
+		if (vkCreatePipelineLayout(g_renderDevice, &layoutCI, g_allocator, &pipelineLayout) != VK_SUCCESS)
+		{
+			return false;
+		}
+
+		////////////////////////////////////////////////////////////////////////////////
+		VkGraphicsPipelineCreateInfo graphicsPipelineCI{ VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
+		{
+			graphicsPipelineCI.pNext = &renderingCI;
+			graphicsPipelineCI.stageCount = 2;
+			graphicsPipelineCI.pStages = shaderStageCI;
+			graphicsPipelineCI.pVertexInputState = &vertexInputStateCI;
+			graphicsPipelineCI.pInputAssemblyState = &inputAssemblyStateCI;
+			graphicsPipelineCI.pViewportState = &viewportStateCI;
+			graphicsPipelineCI.pRasterizationState = &rasterizationStateCI;
+			graphicsPipelineCI.pMultisampleState = &multisampleStateCI;
+			graphicsPipelineCI.pDepthStencilState = &depthStencilStateCI;
+			graphicsPipelineCI.pColorBlendState = &colorBlendStateCI;
+			graphicsPipelineCI.pDynamicState = &dynamicStateCI;
+			graphicsPipelineCI.layout = pipelineLayout;
+			//gpCI.renderPass = ;
+			//gpCI.subpass = ;
+			//gpCI.basePipelineHandle = ;
+			//gpCI.basePipelineIndex = ;
+		}
+
+		VkPipeline newPipeline{ VK_NULL_HANDLE };
+		if (vkCreateGraphicsPipelines(g_renderDevice, VK_NULL_HANDLE, 1, &graphicsPipelineCI, g_allocator, &newPipeline) == VK_SUCCESS)
+		{
+			return true;
+		}
+		return false;
 	}
 }

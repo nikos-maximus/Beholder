@@ -20,7 +20,7 @@ bool bhMapRenderer::Init()
 
   SDL_Surface* textureSurf = nullptr;
   SDL_LockTextureToSurface(texture, nullptr, &textureSurf);
-  SDL_Rect rect = { 0, 0, TILE_SZ_PX ,TILE_SZ_PX };
+  SDL_Rect rect{ 0, 0, TILE_SZ_PX ,TILE_SZ_PX };
   for (uint8_t y = 0; y < ysiz; ++y)
   {
     for (uint8_t x = 0; x < xsiz; ++x)
@@ -56,7 +56,7 @@ void bhMapRenderer::DrawLayout(const bhMap* map)
 {
   SDL_Surface* textureSurf = nullptr;
   SDL_LockTextureToSurface(texture, nullptr, &textureSurf);
-  SDL_Rect rect = { 0, 0, TILE_SZ_PX ,TILE_SZ_PX };
+  SDL_Rect rect{ 0, 0, TILE_SZ_PX ,TILE_SZ_PX };
   for (uint8_t y = 0; y < ysiz; ++y)
   {
     for (uint8_t x = 0; x < xsiz; ++x)

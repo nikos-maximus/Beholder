@@ -126,7 +126,7 @@ namespace bhEditor
             g_map = new bhMap(16, 16);
             g_mapRenderer = new bhMapRenderer(sdlRenderer);
             g_mapRenderer->Reset(g_map);
-            g_mapRenderer->Init(); // TODO: Error check
+            g_mapRenderer->Init(); //TODO: Error check
 
 
             if (ImGui_ImplSDL3_InitForSDLRenderer(mainWindow, sdlRenderer))

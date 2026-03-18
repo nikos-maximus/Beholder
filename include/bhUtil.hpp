@@ -11,12 +11,19 @@ namespace bhUtil
     o1 = tmp;
   }
 
+  struct FileData
+  {
+    __forceinline bool IsValid() { return (data != nullptr) && (length > 0); }
+    void* data{ nullptr };
+    long length{ 0 };
+  };
+
   const char* GetFileExtension(char const* fileName);
   // extensions is a null-terminated array of c-strings
   // containing file extensions without the '.' e.g. { "jpg", "png" }
   bool IsFileType(const char* fileName, const char** extensions);
-  long ReadFile(const char* filePath, bool binary, void*& fd);
-  void FreeFileData(void*& fd);
+  FileData ReadFile(const char* filePath, bool binary);
+  void FreeFileData(FileData& fd);
   void* AlignedAlloc(size_t size, size_t alignment);
   void AlignedFree(void* data);
   bool StartsWith(const char* str, const char* testStr);

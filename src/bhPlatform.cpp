@@ -30,15 +30,6 @@ namespace bhPlatform
     return SDL_GetBasePath();
   }
 
-  constexpr const char* GetDirSeparator()
-  {
-  #if SDL_PLATFORM_WINDOWS
-    return "\\";
-  #else
-    return "/";
-  #endif
-  }
-
   const char* GetResourceTypeStr(ResourceType rt)
   {
     uint8_t intRT = static_cast<uint8_t>(rt);
@@ -72,18 +63,18 @@ namespace bhPlatform
 
   const char* CreateConfigFilePath(const char* configName)
   {
-    size_t len = strlen(GetExecutableDir()) + strlen(GetDirSeparator()) + strlen(configName) + 1;
+    size_t len = strlen(GetExecutableDir()) + strlen(BH_DIR_SEPARATOR) + strlen(configName) + 1;
     char* cfp = new char[len];
-    sprintf_s(cfp, len, "%s%s%s", GetExecutableDir(), GetDirSeparator(), configName);
+    sprintf_s(cfp, len, "%s%s%s", GetExecutableDir(), BH_DIR_SEPARATOR, configName);
     return cfp;
   }
 
   bool SetDataDir(const char* path)
   {
-    bool needsPostfix = !bhUtil::EndsWith(path, GetDirSeparator());
-    size_t len = strlen(path) + (needsPostfix ? strlen(GetDirSeparator()) : 0) + 1;
+    bool needsPostfix = !bhUtil::EndsWith(path, BH_DIR_SEPARATOR);
+    size_t len = strlen(path) + (needsPostfix ? strlen(BH_DIR_SEPARATOR) : 0) + 1;
     char* newDataDir = new char[len];
-    sprintf_s(newDataDir, len, "%s%s", path, needsPostfix ? GetDirSeparator() : "");
+    sprintf_s(newDataDir, len, "%s%s", path, needsPostfix ? BH_DIR_SEPARATOR : "");
     if (CheckDirectoryExists(newDataDir))
     {
       delete[] g_dataDir;
@@ -100,9 +91,9 @@ namespace bhPlatform
   {
     if (!g_dataDir)
     {
-      size_t len = strlen(GetExecutableDir()) + strlen(DATA_DIR_NAME) + strlen(GetDirSeparator()) + 1;
+      size_t len = strlen(GetExecutableDir()) + strlen(DATA_DIR_NAME) + strlen(BH_DIR_SEPARATOR) + 1;
       g_dataDir = new char[len];
-      sprintf_s(g_dataDir, len, "%s%s%s", GetExecutableDir(), DATA_DIR_NAME, GetDirSeparator());
+      sprintf_s(g_dataDir, len, "%s%s%s", GetExecutableDir(), DATA_DIR_NAME, BH_DIR_SEPARATOR);
     }
     return g_dataDir;
   }
@@ -116,9 +107,9 @@ namespace bhPlatform
     {
       if (g_resourceDirs[intRT] == nullptr)
       {
-        size_t len = strlen(GetDataDir()) + strlen(GetResourceTypeStr(rt)) + strlen(GetDirSeparator()) + 1;
+        size_t len = strlen(GetDataDir()) + strlen(GetResourceTypeStr(rt)) + strlen(BH_DIR_SEPARATOR) + 1;
         g_resourceDirs[intRT] = new char[len];
-        sprintf_s(g_resourceDirs[intRT], len, "%s%s%s", GetDataDir(), GetResourceTypeStr(rt), GetDirSeparator());
+        sprintf_s(g_resourceDirs[intRT], len, "%s%s%s", GetDataDir(), GetResourceTypeStr(rt), BH_DIR_SEPARATOR);
       }
       return g_resourceDirs[intRT];
     }
@@ -142,6 +133,15 @@ namespace bhPlatform
       return bool(fileInfo.st_mode & S_IFDIR);
     }
     return false;
+  }
+
+  const char* CreatePath(ResourceType rt, const char* fileName)
+  {
+    const char* dir = GetResourceTypeStr(rt);
+    size_t pathLen = strlen(dir) + strlen(fileName) + 2; // + path delim + null-terminate
+    char* path = new char[pathLen];
+    sprintf_s(path, pathLen, "%s%s%s", dir, BH_DIR_SEPARATOR, fileName);
+    return path;
   }
 }
 
@@ -263,15 +263,6 @@ const char* CreateOpenFileDialog(bool getFullPath)
 const char* CreateSaveFileDialog(bool getFullPath)
 {
   return CreateNativeFileDialog(true, getFullPath);
-}
-
-const char* CreatePath(ResourceType rt, const char* fileName)
-{
-    const char* dir = GetResourceTypeStr(rt);
-    size_t pathLen = strlen(dir) + strlen(fileName) + 2; // + path delim + null-terminate
-    char* path = new char[pathLen];
-    sprintf_s(path, pathLen, "%s%c%s", dir, PATH_DELIM, fileName);
-    return path;
 }
 
 const char* GetExecutableDir()

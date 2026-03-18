@@ -3,12 +3,18 @@
 
 namespace bhPlatform
 {
+  constexpr const char* BH_DIR_SEPARATOR =
+#if SDL_PLATFORM_WINDOWS
+    "\\";
+#else
+    "/";
+#endif
+
   enum class ResourceType
   {
     RT_IMAGE,
     //RT_SHADER_SRC,
-    //RT_SHADER_BIN_OPENGL,
-    //RT_SHADER_BIN_VULKAN,
+    RT_SHADER,
     //RT_PIPELINE,
     //RT_MATERIAL,
     RT_MESH,
@@ -22,7 +28,6 @@ namespace bhPlatform
 
   bool Init();
   void Destroy();
-  constexpr const char* GetDirSeparator();
   //const char* CreateOpenFileDialog(bool getFullPath);
   //const char* CreateSaveFileDialog(bool getFullPath);
   const char* GetExecutableDir();

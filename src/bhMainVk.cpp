@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
           delete[] cubeFile;
           //DEBUG
 
-          SDL_ShowWindow(mainWindow); // TODO: Error check
+          SDL_ShowWindow(mainWindow); //TODO: Error check
           bool running = true;
           while (running)
           {

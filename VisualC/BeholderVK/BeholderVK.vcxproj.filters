@@ -16,6 +16,9 @@
     <Filter Include="thirdparty">
       <UniqueIdentifier>{74ea14ec-92d7-42af-93b7-b3febc990ef4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{52a7e66a-6819-4eae-9372-c6a15cd01160}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\bhConfig.cpp">
@@ -113,5 +116,11 @@
     <ClInclude Include="..\..\include\bhTransform.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Data\Shader_src\Shader01.slang">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\Data\CompileShaders.cmd" />
   </ItemGroup>
 </Project>

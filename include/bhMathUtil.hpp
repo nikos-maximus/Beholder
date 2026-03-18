@@ -54,7 +54,7 @@ namespace bhMath
     return (int)v;
   }
 
-  // TODO:
+  //TODO:
   //__forceinline int Ceilf(float v)
   //{
   //    return Floorf(v) + 1;

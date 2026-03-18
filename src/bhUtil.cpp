@@ -48,7 +48,7 @@ namespace bhUtil
     return sz;
   }
 
-  long ReadFile(const char* filePath, bool binary, void*& fd)
+  FileData ReadFile(const char* filePath, bool binary)
   {
     FILE* file = nullptr;
     errno_t err = fopen_s(&file, filePath, binary ? "rb" : "r");
@@ -60,48 +60,49 @@ namespace bhUtil
     }
     SDL_assert(file); // If the above check passes, this should never fail
 
-    long length = GetFileSize(file);
+    FileData newFD;
+    newFD.length = GetFileSize(file);
     if (!binary)
     {
-      ++length;
+      ++newFD.length;
     }
-    fd = (void*)calloc(length, sizeof(unsigned char));
-    size_t retCode = fread(fd, sizeof(unsigned char), length, file);
-    if (retCode != length)
+    newFD.data = (void*)calloc(newFD.length, sizeof(unsigned char));
+    size_t retCode = fread(newFD.data, sizeof(unsigned char), newFD.length, file);
+    if (retCode != newFD.length)
     {
-      FreeFileData(fd);
-      return 0;
+      FreeFileData(newFD);
     }
     fclose(file);
-    return length;
+    return newFD;
   }
 
-  void FreeFileData(void*& fd)
+  void FreeFileData(FileData& fd)
   {
-    free(fd);
-    fd = nullptr;
+    free(fd.data);
+    fd.data = nullptr;
+    fd.length = 0;
   }
 
   void* AlignedAlloc(size_t size, size_t alignment)
   {
     void* data = NULL;
-  #if defined(_MSC_VER) || defined(__MINGW32__)
+#if defined(_MSC_VER) || defined(__MINGW32__)
     data = _aligned_malloc(size, alignment);
-  #else
+#else
     int res = posix_memalign(&data, alignment, size);
     if (res != 0)
       data = nullptr;
-  #endif
+#endif
     return data;
   }
 
   void AlignedFree(void* data)
   {
-  #if	defined(_MSC_VER) || defined(__MINGW32__)
+#if	defined(_MSC_VER) || defined(__MINGW32__)
     _aligned_free(data);
-  #else
+#else
     free(data);
-  #endif
+#endif
   }
 
   bool StartsWith(const char* str, const char* testStr)
