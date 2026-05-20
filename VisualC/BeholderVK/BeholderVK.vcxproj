@@ -145,6 +145,7 @@
     <ClCompile Include="..\..\src\bhStbImpl.cpp" />
     <ClCompile Include="..\..\src\bhUtil.cpp" />
     <ClCompile Include="..\..\src\bhVk.cpp" />
+    <ClCompile Include="..\..\src\bhVkPipeline.cpp" />
     <ClCompile Include="..\..\src\bhVMAImpl.cpp" />
     <ClCompile Include="..\..\src\bhVolkImpl.cpp" />
     <ClCompile Include="..\..\src\bhWorld.cpp" />
@@ -167,6 +168,7 @@
     <ClInclude Include="..\..\include\bhTransform.hpp" />
     <ClInclude Include="..\..\include\bhUtil.hpp" />
     <ClInclude Include="..\..\include\bhVk.hpp" />
+    <ClInclude Include="..\..\include\bhVkPipeline.hpp" />
     <ClInclude Include="..\..\include\bhWorld.hpp" />
   </ItemGroup>
   <ItemGroup>

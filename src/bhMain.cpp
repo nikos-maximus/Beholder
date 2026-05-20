@@ -7,7 +7,10 @@
 
 //DEBUG
 #include "bhGltf.hpp"
+#include "bhCamera.hpp"
 //DEBUG
+
+bhCamera g_camera;
 
 ////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[])
@@ -58,7 +61,7 @@ int main(int argc, char* argv[])
               }
             }
 
-            bhVk::BeginFrame();
+            bhVk::BeginFrame(mainWindow, &g_camera);
             bhVk::EndFrame();
           }
           bhVk::DestroyRenderDevice();
