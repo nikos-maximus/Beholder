@@ -113,6 +113,8 @@ namespace bhVk
     VkImageView colorViews[BH_NUM_FRAMES_IN_FLIGHT]{ VK_NULL_HANDLE };
     Texture depthStencilImage;
     VkImageView depthStencilView{ VK_NULL_HANDLE };
+
+    ShaderDataBuffer shaderDataBuffers[BH_NUM_FRAMES_IN_FLIGHT];
   };
 
   ////////////////////////////////////////////////////////////////////////////////

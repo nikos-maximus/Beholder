@@ -53,8 +53,6 @@ namespace bhVk
 	////////////////////////////////////////////////////////////////////////////////
 	static std::vector<Texture> g_textures;
 
-	static ShaderDataBuffer g_shaderDataBuffers[BH_NUM_FRAMES_IN_FLIGHT];
-
 
 
 
@@ -62,7 +60,6 @@ namespace bhVk
 	static constexpr uint8_t BH_IMGUI_FLAG_VISIBLE = BH_BIT(1);
 
 	static uint8_t g_imguiFlags = 0;
-
 
 	static std::vector<VkDescriptorImageInfo> g_textureDescriptors;
 
@@ -568,7 +565,7 @@ namespace bhVk
 		ShaderData shaderData;
 		shaderData.viewProj = cam->GetViewProjection();
 		//shaderData.model;
-		memcpy(g_shaderDataBuffers[imgIdx].allocationInfo.pMappedData, &shaderData, sizeof(ShaderData));
+		memcpy(shaderDataBuffers[imgIdx].allocationInfo.pMappedData, &shaderData, sizeof(ShaderData));
 
 		VkCommandBuffer& currCommandBuffer = cmdBuffers[imgIdx];
 		Chk(vkResetCommandBuffer(currCommandBuffer, 0));
@@ -673,7 +670,7 @@ namespace bhVk
 		vkCmdBindVertexBuffers(currCommandBuffer, 0, 1, , &vOffset);
 		vkCmdBindIndexBuffer(currCommandBuffer, , , VK_INDEX_TYPE_UINT16);
 
-		vkCmdPushConstants(currCommandBuffer, g_pipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VkDeviceAddress), &(g_shaderDataBuffers[imgIdx].deviceAddr));
+		vkCmdPushConstants(currCommandBuffer, g_pipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VkDeviceAddress), &(shaderDataBuffers[imgIdx].deviceAddr));
 
 		vkCmdDrawIndexed(currCommandBuffer, , 1, 0, 0, 0);
 	}
@@ -846,7 +843,7 @@ namespace bhVk
 
 		for (uint32_t dataBufferIdx = 0; dataBufferIdx < BH_NUM_FRAMES_IN_FLIGHT; ++dataBufferIdx)
 		{
-			ShaderDataBuffer& sd = g_shaderDataBuffers[dataBufferIdx];
+			ShaderDataBuffer& sd = shaderDataBuffers[dataBufferIdx];
 			if (Chk(vmaCreateBuffer(vmAllocator, &bci, &aci, &(sd.buffer), &(sd.allocation), &(sd.allocationInfo))))
 			{
 				VkBufferDeviceAddressInfo bdaInfo{ VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO };
@@ -865,7 +862,7 @@ namespace bhVk
 	{
 		for (uint32_t dataBufferIdx = 0; dataBufferIdx < BH_NUM_FRAMES_IN_FLIGHT; ++dataBufferIdx)
 		{
-			ShaderDataBuffer& sd = g_shaderDataBuffers[dataBufferIdx];
+			ShaderDataBuffer& sd = shaderDataBuffers[dataBufferIdx];
 			vmaDestroyBuffer(vmAllocator, sd.buffer, sd.allocation);
 		}
 	}
