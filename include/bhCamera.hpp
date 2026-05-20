@@ -11,8 +11,14 @@ public:
 		glm::mat4 view, projection;
 	};
 
+	inline void SetAspect(float _aspect) { aspect = _aspect; }
+	inline const ViewProjection& GetViewProjection() const { return viewProj; }
+
 protected:
 private:
+	ViewProjection viewProj;
+	glm::vec3 position;
+	float aspect{ 1.0f };
 };
 
 #endif //BH_CAMERA_HPP

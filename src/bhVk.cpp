@@ -8,6 +8,7 @@
 #include "bhMesh.hpp"
 #include "bhUtil.hpp"
 #include "bhPlatform.hpp"
+#include "bhLog.hpp"
 
 #ifdef SDL_PLATFORM_WINDOWS
 #define WIN32_LEAN_AND_MEAN
@@ -24,29 +25,52 @@
 
 namespace bhVk
 {
-	struct RankedPhysicalDevice
-	{
-		VkPhysicalDevice physDevice{ VK_NULL_HANDLE };
-		uint32_t rank{ 0 };
-		uint32_t preferredQueueFamily{ 0 };
-	};
-
 	static constexpr uint32_t BH_VK_API_VERSION = VK_API_VERSION_1_3;
 	static constexpr uint32_t BH_NUM_FRAMES_IN_FLIGHT{ 2 }; // a.k.a. Frames In Flight
+	static constexpr VkFormat g_presentImageFormat{ VK_FORMAT_B8G8R8A8_SRGB }, g_depthStencilFormat{ VK_FORMAT_D24_UNORM_S8_UINT };
+	
+	static inline bool Chk(VkResult result)
+	{
+		if (result != VK_SUCCESS)
+		{
+			bhLog::Message(bhLog::LOG_CATEGORY_ERROR, bhLog::LOG_PRIORITY_ERROR, "Vulkan call returned %d", result);
+			SDL_assert(false);
+			return false;
+		}
+		return true;
+	}
+
+	struct PhysicalDevice
+	{
+		VkPhysicalDevice device{ VK_NULL_HANDLE };
+		uint32_t preferredQueueFamily{ 0 };
+	};
+	static PhysicalDevice g_physicalRD;
+
+	struct RankedPhysicalDevice
+	{
+		PhysicalDevice device;
+		uint32_t rank{ 0 };
+	};
+
+	struct Device
+	{
+		VkDevice device{ VK_NULL_HANDLE };
+		VkCommandPool cmdPool{ VK_NULL_HANDLE };
+		VkCommandBuffer cmdBuffers[BH_NUM_FRAMES_IN_FLIGHT]{ VK_NULL_HANDLE };
+		VkQueue renderQueue{ VK_NULL_HANDLE };
+		uint32_t imgIdx{ UINT32_MAX };
+		uint32_t frameIdx{ 0 };
+	};
+	static Device g_RD;
+
 	static std::vector<Texture> g_textures;
 
-	static constexpr VkFormat g_presentImageFormat{ VK_FORMAT_B8G8R8A8_SRGB }, g_depthStencilFormat{ VK_FORMAT_D24_UNORM_S8_UINT };
-
 	static VkInstance g_instance{ VK_NULL_HANDLE };
-
-	static RankedPhysicalDevice g_selectedRankedRenderDevice;
-	static VkDevice g_renderDevice{ VK_NULL_HANDLE };
+	
 	static VmaAllocator g_renderDeviceAllocator{ VK_NULL_HANDLE };
 
-	static VkCommandPool g_commandPool{ VK_NULL_HANDLE };
 	static ShaderDataBuffer g_shaderDataBuffers[BH_NUM_FRAMES_IN_FLIGHT];
-	static VkCommandBuffer g_commandBuffers[BH_NUM_FRAMES_IN_FLIGHT]{ VK_NULL_HANDLE };
-	static VkQueue g_renderQueue{ VK_NULL_HANDLE };
 
 	static VkSwapchainKHR g_swapchain{ VK_NULL_HANDLE };
 	static VkImage g_swapchainImages[BH_NUM_FRAMES_IN_FLIGHT]{ VK_NULL_HANDLE };
@@ -54,10 +78,6 @@ namespace bhVk
 	static Texture g_depthStencilImage;
 	static VkImageView g_depthStencilView{ VK_NULL_HANDLE };
 	static VkExtent2D g_windowSize;
-
-	static VkRenderPass g_renderPass{ VK_NULL_HANDLE };
-
-	static uint32_t g_currSwapImgIndex{ UINT32_MAX };
 
 	static VkSemaphore g_semaphoresImageAvailable[BH_NUM_FRAMES_IN_FLIGHT]{ VK_NULL_HANDLE };
 	static VkSemaphore g_semaphoresRenderFinished[BH_NUM_FRAMES_IN_FLIGHT]{ VK_NULL_HANDLE };
@@ -72,6 +92,7 @@ namespace bhVk
 	static std::vector<VkDescriptorImageInfo> g_textureDescriptors;
 	static VkDescriptorSetLayout g_descSetLayout{ VK_NULL_HANDLE };
 
+	static Pipeline g_pipeline;
 	int CompareRankedDevice(const void* a, const void* b)
 	{
 		RankedPhysicalDevice* rda = (RankedPhysicalDevice*)a;
@@ -159,15 +180,16 @@ namespace bhVk
 	void EnumInstanceExtensions(const char* layer)
 	{
 		uint32_t numExtensions = 0;
-		if (vkEnumerateInstanceExtensionProperties(layer, &numExtensions, nullptr) == VK_SUCCESS)
+		if (Chk(vkEnumerateInstanceExtensionProperties(layer, &numExtensions, nullptr)))
 		{
 			std::vector<VkExtensionProperties> extensionProps(numExtensions);
-			vkEnumerateInstanceExtensionProperties(layer, &numExtensions, extensionProps.data());
-
-			std::cout << "Instance Extensions - Layer : " << (layer ? layer : "no layer") << std::endl;
-			for (const auto& ep : extensionProps)
+			if (Chk(vkEnumerateInstanceExtensionProperties(layer, &numExtensions, extensionProps.data())))
 			{
-				std::cout << ep.extensionName << std::endl;
+				std::cout << "Instance Extensions - Layer : " << (layer ? layer : "no layer") << std::endl;
+				for (const auto& ep : extensionProps)
+				{
+					std::cout << ep.extensionName << std::endl;
+				}
 			}
 		}
 	}
@@ -217,8 +239,7 @@ namespace bhVk
 		instanceCI.ppEnabledExtensionNames = extensionNames;
 
 		EnumInstanceExtensions(nullptr);
-
-		if (vkCreateInstance(&instanceCI, g_allocator, &g_instance) == VK_SUCCESS)
+		if (Chk(vkCreateInstance(&instanceCI, g_allocator, &g_instance)))
 		{
 			volkLoadInstance(g_instance);
 			return true;
@@ -257,75 +278,12 @@ namespace bhVk
 			//swapchainCI.oldSwapchain = ;
 		}
 
-		if (vkCreateSwapchainKHR(g_renderDevice, &swapchainCI, g_allocator, &g_swapchain) == VK_SUCCESS)
+		if (Chk(vkCreateSwapchainKHR(g_RD.device, &swapchainCI, g_allocator, &g_swapchain)))
 		{
 			uint32_t numImages = BH_NUM_FRAMES_IN_FLIGHT;
-			return vkGetSwapchainImagesKHR(g_renderDevice, g_swapchain, &numImages, g_swapchainImages) == VK_SUCCESS;
+			return Chk(vkGetSwapchainImagesKHR(g_RD.device, g_swapchain, &numImages, g_swapchainImages));
 		}
 		return false;
-	}
-
-	bool CreateRenderPass()
-	{
-		VkAttachmentDescription attachmentDescs[2] = {};
-		{
-			attachmentDescs[0].format = VK_FORMAT_R8G8B8A8_UNORM;
-			attachmentDescs[0].samples = VK_SAMPLE_COUNT_1_BIT;
-			attachmentDescs[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-			attachmentDescs[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-			attachmentDescs[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-			attachmentDescs[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-			attachmentDescs[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			attachmentDescs[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-			attachmentDescs[1].format = g_depthStencilFormat;
-			attachmentDescs[1].samples = VK_SAMPLE_COUNT_1_BIT;
-			attachmentDescs[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-			attachmentDescs[1].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-			attachmentDescs[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-			attachmentDescs[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-			attachmentDescs[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			attachmentDescs[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-		}
-
-		VkAttachmentReference attachmentRefs[2] = {};
-		{
-			attachmentRefs[0].attachment = 0;
-			attachmentRefs[0].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-			attachmentRefs[1].attachment = 1;
-			attachmentRefs[1].layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-		}
-
-		VkSubpassDescription subpassDesc = {};
-		{
-			subpassDesc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-			subpassDesc.colorAttachmentCount = 1;
-			subpassDesc.pColorAttachments = &(attachmentRefs[0]);
-			subpassDesc.pDepthStencilAttachment = &(attachmentRefs[1]);
-		}
-
-		VkSubpassDependency subpassDep = {};
-		{
-			subpassDep.srcSubpass = VK_SUBPASS_EXTERNAL;
-			subpassDep.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-			//subpassDep.srcAccessMask = 0;
-			subpassDep.dstSubpass = 0; //Index
-			subpassDep.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-			subpassDep.dstStageMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		}
-
-		VkRenderPassCreateInfo renderPassCI{ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
-		{
-			renderPassCI.attachmentCount = 2;
-			renderPassCI.pAttachments = attachmentDescs;
-			renderPassCI.subpassCount = 1;
-			renderPassCI.pSubpasses = &subpassDesc;
-			renderPassCI.dependencyCount = 1;
-			renderPassCI.pDependencies = &subpassDep;
-		}
-
-		return (vkCreateRenderPass(g_renderDevice, &renderPassCI, g_allocator, &g_renderPass) == VK_SUCCESS);
 	}
 
 	bool CreateFramebuffers()
@@ -341,7 +299,7 @@ namespace bhVk
 				colorViewCI.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
 			}
 
-			vkCreateImageView(g_renderDevice, &colorViewCI, g_allocator, &(g_colorViews[displayBufIdx]));
+			vkCreateImageView(g_RD.device, &colorViewCI, g_allocator, &(g_colorViews[displayBufIdx]));
 		}
 
 		VkImageCreateInfo depthStencilImageCI{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
@@ -362,7 +320,7 @@ namespace bhVk
 		VmaAllocationCreateInfo allocationCI = {};
 		allocationCI.usage = VMA_MEMORY_USAGE_AUTO;
 
-		if (vmaCreateImage(g_renderDeviceAllocator, &depthStencilImageCI, &allocationCI, &(g_depthStencilImage.image), &(g_depthStencilImage.allocation), nullptr) == VK_SUCCESS)
+		if (Chk(vmaCreateImage(g_renderDeviceAllocator, &depthStencilImageCI, &allocationCI, &(g_depthStencilImage.image), &(g_depthStencilImage.allocation), nullptr)))
 		{
 			VkImageViewCreateInfo depthStencilViewCI{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
 			{
@@ -372,7 +330,7 @@ namespace bhVk
 				//depthStencilViewCI.components = ; // All-zeroes is identity, so this should work as is (?)
 				depthStencilViewCI.subresourceRange = { VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT, 0, 1, 0, 1 };
 			}
-			vkCreateImageView(g_renderDevice, &depthStencilViewCI, g_allocator, &g_depthStencilView);
+			Chk(vkCreateImageView(g_RD.device, &depthStencilViewCI, g_allocator, &g_depthStencilView));
 		}
 
 		//VkImageView attachments[] = { g_colorViews[displayBufIdx], g_depthStencilView };
@@ -387,7 +345,7 @@ namespace bhVk
 		//	fbCI.layers = 1;
 		//}
 
-		//if (vkCreateFramebuffer(g_renderDevice, &fbCI, g_allocator, &(g_framebuffers[displayBufIdx].framebuffer)) != VK_SUCCESS)
+		//if (vkCreateFramebuffer(g_RD.device, &fbCI, g_allocator, &(g_framebuffers[displayBufIdx].framebuffer)) != VK_SUCCESS)
 		//{
 		//	return false;
 		//}
@@ -407,9 +365,9 @@ namespace bhVk
 		bool result = true;
 		for (uint32_t i = 0; i < BH_NUM_FRAMES_IN_FLIGHT; ++i)
 		{
-			result &= (vkCreateSemaphore(g_renderDevice, &semaphoreCI, g_allocator, &(g_semaphoresRenderFinished[i])) == VK_SUCCESS);
-			result &= (vkCreateSemaphore(g_renderDevice, &semaphoreCI, g_allocator, &(g_semaphoresImageAvailable[i])) == VK_SUCCESS);
-			result &= (vkCreateFence(g_renderDevice, &fenceCI, g_allocator, &(g_drawFences[i])) == VK_SUCCESS);
+			result &= (vkCreateSemaphore(g_RD.device, &semaphoreCI, g_allocator, &(g_semaphoresRenderFinished[i])) == VK_SUCCESS);
+			result &= (vkCreateSemaphore(g_RD.device, &semaphoreCI, g_allocator, &(g_semaphoresImageAvailable[i])) == VK_SUCCESS);
+			result &= (vkCreateFence(g_RD.device, &fenceCI, g_allocator, &(g_drawFences[i])) == VK_SUCCESS);
 			if (!result) break;
 		}
 		return result;
@@ -417,20 +375,16 @@ namespace bhVk
 
 	bool CreateRenderDevice(SDL_Window* wnd)
 	{
-		VkResult error = VK_SUCCESS;
-
 		//vkEnumeratePhysicalDeviceGroups
 		uint32_t numPhysDevices = 0;
-		error = vkEnumeratePhysicalDevices(g_instance, &numPhysDevices, nullptr);
-		if (error)
+		if (!Chk(vkEnumeratePhysicalDevices(g_instance, &numPhysDevices, nullptr)))
 		{
 			// Figure out error?
 			return false;
 		}
 
 		std::vector<VkPhysicalDevice> physDevices(numPhysDevices);
-		error = vkEnumeratePhysicalDevices(g_instance, &numPhysDevices, physDevices.data());
-		if (error)
+		if (!Chk(vkEnumeratePhysicalDevices(g_instance, &numPhysDevices, physDevices.data())))
 		{
 			// Figure out error?
 			return false;
@@ -443,13 +397,13 @@ namespace bhVk
 		}
 
 		SDL_qsort(rankedPhysDevices.data(), numPhysDevices, sizeof(RankedPhysicalDevice), CompareRankedDevice);
-		g_selectedRankedRenderDevice = rankedPhysDevices[0];
+		g_physicalRD = rankedPhysDevices[0].device;
 
 		constexpr uint32_t numQueues = 1;
 		const float priorities[numQueues]{ 1.0f };
 
 		VkDeviceQueueCreateInfo queueCI{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
-		queueCI.queueFamilyIndex = rankedPhysDevices[0].preferredQueueFamily;
+		queueCI.queueFamilyIndex = g_physicalRD.preferredQueueFamily;
 		queueCI.queueCount = numQueues;
 		queueCI.pQueuePriorities = priorities;
 
@@ -490,8 +444,7 @@ namespace bhVk
 			deviceCI.pEnabledFeatures = &deviceFeatures;
 		}
 
-		error = vkCreateDevice(g_selectedRankedRenderDevice.physDevice, &deviceCI, g_allocator, &g_renderDevice);
-		if (error)
+		if (!Chk(vkCreateDevice(g_physicalRD.device, &deviceCI, g_allocator, &g_RD.device)))
 		{
 			// Figure out error?
 			return false;
@@ -500,8 +453,8 @@ namespace bhVk
 		// Create VMA
 		VmaAllocatorCreateInfo allocatorCreateInfo = {};
 		{
-			allocatorCreateInfo.physicalDevice = rankedPhysDevices[0].physDevice;
-			allocatorCreateInfo.device = g_renderDevice;
+			allocatorCreateInfo.physicalDevice = g_physicalRD.device;
+			allocatorCreateInfo.device = g_RD.device;
 			allocatorCreateInfo.instance = g_instance;
 			allocatorCreateInfo.vulkanApiVersion = BH_VK_API_VERSION;
 			//allocatorCreateInfo.flags =
@@ -511,31 +464,28 @@ namespace bhVk
 		}
 
 		VmaVulkanFunctions vulkanFunctions;
-		error = vmaImportVulkanFunctionsFromVolk(&allocatorCreateInfo, &vulkanFunctions);
-		if (error)
+		if (!Chk(vmaImportVulkanFunctionsFromVolk(&allocatorCreateInfo, &vulkanFunctions)))
 		{
 			// Figure out error?
 			return false;
 		}
 
 		allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
-		error = vmaCreateAllocator(&allocatorCreateInfo, &g_renderDeviceAllocator);
-		if (error)
+		if (!Chk(vmaCreateAllocator(&allocatorCreateInfo, &g_renderDeviceAllocator)))
 		{
 			// Figure out error?
 			return false;
 		}
 
-		vkGetDeviceQueue(g_renderDevice, rankedPhysDevices[0].preferredQueueFamily, 0, &g_renderQueue);
+		vkGetDeviceQueue(g_RD.device, g_physicalRD.preferredQueueFamily, 0, &(g_RD.renderQueue));
 
 		// Create Command Pool
 		VkCommandPoolCreateInfo commandPoolCI{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
 		{
 			commandPoolCI.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-			commandPoolCI.queueFamilyIndex = rankedPhysDevices[0].preferredQueueFamily;
+			commandPoolCI.queueFamilyIndex = g_physicalRD.preferredQueueFamily;
 		}
-		error = vkCreateCommandPool(g_renderDevice, &commandPoolCI, g_allocator, &g_commandPool);
-		if (error)
+		if (!Chk(vkCreateCommandPool(g_RD.device, &commandPoolCI, g_allocator, &(g_RD.cmdPool))))
 		{
 			// Figure out error?
 			return false;
@@ -543,20 +493,18 @@ namespace bhVk
 
 		VkCommandBufferAllocateInfo cmdBufferAI{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
 		{
-			cmdBufferAI.commandPool = g_commandPool;
+			cmdBufferAI.commandPool = g_RD.cmdPool;
 			cmdBufferAI.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 			cmdBufferAI.commandBufferCount = BH_NUM_FRAMES_IN_FLIGHT;
 		}
 
-		error = vkAllocateCommandBuffers(g_renderDevice, &cmdBufferAI, g_commandBuffers);
-		if (error)
+		if (!Chk(vkAllocateCommandBuffers(g_RD.device, &cmdBufferAI, g_RD.cmdBuffers)))
 		{
 			// Figure out error?
 			return false;
 		}
 
 		if (!CreateSwapchain(wnd)) return false;
-		if (!CreateRenderPass()) return false;
 		if (!CreateFramebuffers()) return false;
 		if (!CreateSyncObjects()) return false;
 
@@ -565,15 +513,15 @@ namespace bhVk
 
 	void DestroyFramebuffers()
 	{
-		vkDestroyImageView(g_renderDevice, g_depthStencilView, g_allocator);
+		vkDestroyImageView(g_RD.device, g_depthStencilView, g_allocator);
 		vmaDestroyImage(g_renderDeviceAllocator, g_depthStencilImage.image, g_depthStencilImage.allocation);
 
 		//for (uint32_t colorImgIdx = 0; colorImgIdx < BH_NUM_DISPLAY_BUFFERS; ++colorImgIdx)
 		//{
 		//	//Framebuffer& currFB = g_framebuffers[displayBufIdx];
 
-		//	vkDestroyImageView(g_renderDevice, g_colorViews[colorImgIdx], g_allocator);
-		//	vkDestroyFramebuffer(g_renderDevice, currFB.framebuffer, g_allocator);
+		//	vkDestroyImageView(g_RD.device, g_colorViews[colorImgIdx], g_allocator);
+		//	vkDestroyFramebuffer(g_RD.device, currFB.framebuffer, g_allocator);
 		//}
 	}
 
@@ -581,25 +529,23 @@ namespace bhVk
 	{
 		for (uint32_t i = 0; i < BH_NUM_FRAMES_IN_FLIGHT; ++i)
 		{
-			vkDestroySemaphore(g_renderDevice, g_semaphoresRenderFinished[i], g_allocator);
-			vkDestroySemaphore(g_renderDevice, g_semaphoresImageAvailable[i], g_allocator);
-			vkDestroyFence(g_renderDevice, g_drawFences[i], g_allocator);
+			vkDestroySemaphore(g_RD.device, g_semaphoresRenderFinished[i], g_allocator);
+			vkDestroySemaphore(g_RD.device, g_semaphoresImageAvailable[i], g_allocator);
+			vkDestroyFence(g_RD.device, g_drawFences[i], g_allocator);
 		}
 	}
 
 	void DestroyRenderDevice()
 	{
-		if (vkDeviceWaitIdle(g_renderDevice) == VK_SUCCESS)
+		if (vkDeviceWaitIdle(g_RD.device) == VK_SUCCESS)
 		{
 			DestroySyncObjects();
-
-			vkDestroyRenderPass(g_renderDevice, g_renderPass, g_allocator);
 			DestroyFramebuffers();
-			vkFreeCommandBuffers(g_renderDevice, g_commandPool, BH_NUM_FRAMES_IN_FLIGHT, g_commandBuffers);
-			vkDestroySwapchainKHR(g_renderDevice, g_swapchain, g_allocator);
-			vkDestroyCommandPool(g_renderDevice, g_commandPool, g_allocator);
+			vkFreeCommandBuffers(g_RD.device, g_RD.cmdPool, BH_NUM_FRAMES_IN_FLIGHT, g_RD.cmdBuffers);
+			vkDestroySwapchainKHR(g_RD.device, g_swapchain, g_allocator);
+			vkDestroyCommandPool(g_RD.device, g_RD.cmdPool, g_allocator);
 			vmaDestroyAllocator(g_renderDeviceAllocator);
-			vkDestroyDevice(g_renderDevice, g_allocator);
+			vkDestroyDevice(g_RD.device, g_allocator);
 		}
 	}
 
@@ -610,112 +556,160 @@ namespace bhVk
 		volkFinalize();
 	}
 
-	void BeginFrame()
+	void BeginFrame(SDL_Window* wnd, const bhCamera& cam)
 	{
-		static constexpr float CLEAR_COLOR_RED = 1.0f;
-		static constexpr float CLEAR_COLOR_GREEN = 0.0f;
-		static constexpr float CLEAR_COLOR_BLUE = 1.0f;
-		static constexpr float CLEAR_COLOR_ALPHA = 1.0f;
+		Chk(vkWaitForFences(g_RD.device, 1, &(g_drawFences[g_RD.imgIdx]), VK_TRUE, UINT64_MAX)); //TODO: Check
+		Chk(vkResetFences(g_RD.device, 1, &(g_drawFences[g_RD.imgIdx])));
+		Chk(vkAcquireNextImageKHR(g_RD.device, g_swapchain, UINT64_MAX, g_semaphoresImageAvailable[g_RD.frameIdx], VK_NULL_HANDLE, &(g_RD.imgIdx)));
 
-		static constexpr float CLEAR_DEPTH = 1.0f;
-		static constexpr uint32_t CLEAR_STENCIL = 0;
+		ShaderData shaderData;
+		shaderData.viewProj = cam.GetViewProjection();
+		//shaderData.model;
+		memcpy(g_shaderDataBuffers[g_RD.imgIdx].allocationInfo.pMappedData, &shaderData, sizeof(ShaderData));
 
-		vkAcquireNextImageKHR(g_renderDevice, g_swapchain, UINT64_MAX, g_semaphoresImageAvailable[g_currSwapImgIndex], VK_NULL_HANDLE, &g_currSwapImgIndex);
-
-		VkCommandBuffer& currCommandBuffer = g_commandBuffers[g_currSwapImgIndex];
+		VkCommandBuffer& currCommandBuffer = g_RD.cmdBuffers[g_RD.imgIdx];
+		Chk(vkResetCommandBuffer(currCommandBuffer, 0));
 		VkCommandBufferBeginInfo commandBufferBI{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
 		{
 			commandBufferBI.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 		}
-		if (vkBeginCommandBuffer(currCommandBuffer, &commandBufferBI) != VK_SUCCESS)
+		if (Chk(vkBeginCommandBuffer(currCommandBuffer, &commandBufferBI)))
 		{
 			//Check error
 			return;
 		}
 
-		VkClearValue clearValues[2] = {};
+		VkImageMemoryBarrier2 outputBarriers[2];
 		{
-			clearValues[0].color.float32[0] = CLEAR_COLOR_RED;
-			clearValues[0].color.float32[1] = CLEAR_COLOR_GREEN;
-			clearValues[0].color.float32[2] = CLEAR_COLOR_BLUE;
-			clearValues[0].color.float32[3] = CLEAR_COLOR_ALPHA;
+			outputBarriers[0] = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2 };
+			outputBarriers[0].srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+			outputBarriers[0].srcAccessMask = 0;
+			outputBarriers[0].dstStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+			outputBarriers[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			outputBarriers[0].oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			outputBarriers[0].newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+			outputBarriers[0].image = g_swapchainImages[g_RD.imgIdx];
 
-			clearValues[1].depthStencil.depth = CLEAR_DEPTH;
-			clearValues[1].depthStencil.stencil = CLEAR_STENCIL;
+			outputBarriers[0].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			outputBarriers[0].subresourceRange.levelCount = 1;
+			outputBarriers[0].subresourceRange.layerCount = 1;
+
+
+			outputBarriers[1] = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2 };
+			outputBarriers[1].srcStageMask = VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT;
+			outputBarriers[1].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+			outputBarriers[1].dstStageMask = VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT;
+			outputBarriers[1].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+			outputBarriers[1].oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			outputBarriers[1].newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+			outputBarriers[1].image = g_depthStencilImage.image;
+
+			outputBarriers[1].subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+			outputBarriers[1].subresourceRange.levelCount = 1;
+			outputBarriers[1].subresourceRange.layerCount = 1;
 		}
-		VkRenderPassBeginInfo renderPassBI{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
+
+		VkDependencyInfo dependencyInfo{ VK_STRUCTURE_TYPE_DEPENDENCY_INFO };
 		{
-			renderPassBI.renderPass = g_renderPass;
-			//renderPassBI.framebuffer = g_framebuffers[g_currSwapImgIndex].framebuffer;
-			renderPassBI.renderArea = { {}, g_windowSize };
-			renderPassBI.clearValueCount = 2;
-			renderPassBI.pClearValues = clearValues;
+			dependencyInfo.imageMemoryBarrierCount = 2;
+			dependencyInfo.pImageMemoryBarriers = outputBarriers;
 		}
-		vkCmdBeginRenderPass(currCommandBuffer, &renderPassBI, VK_SUBPASS_CONTENTS_INLINE);
+		vkCmdPipelineBarrier2(currCommandBuffer, &dependencyInfo);
 
-		//VkClearAttachment clearAttachments[2] = {};
-		//{
-		//	clearAttachments[0].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		//	//clearAttachments[0].colorAttachment = ;
-		//	clearAttachments[0].clearValue.color.float32[0] = CLEAR_COLOR_RED;
-		//	clearAttachments[0].clearValue.color.float32[1] = CLEAR_COLOR_GREEN;
-		//	clearAttachments[0].clearValue.color.float32[2] = CLEAR_COLOR_BLUE;
-		//	clearAttachments[0].clearValue.color.float32[3] = CLEAR_COLOR_ALPHA;
+		VkRenderingAttachmentInfo colorAttachmentInfo{ VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO };
+		{
+			colorAttachmentInfo.imageView = g_colorViews[g_RD.imgIdx];
+			colorAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+			colorAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			colorAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			colorAttachmentInfo.clearValue = { 1.0f, 0.0f, 1.0f, 1.0f };
+		}
 
-		//	clearAttachments[1].aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-		//	//clearAttachments[1].colorAttachment = ;
-		//	clearAttachments[1].clearValue.depthStencil.depth = CLEAR_DEPTH;
-		//	clearAttachments[1].clearValue.depthStencil.stencil = CLEAR_STENCIL;
-		//}
+		VkRenderingAttachmentInfo depthStencilAttachmentInfo{ VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO };
+		{
+			depthStencilAttachmentInfo.imageView = g_depthStencilView;
+			depthStencilAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+			depthStencilAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			depthStencilAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			depthStencilAttachmentInfo.clearValue = { 1.0f, 0.0f };
+		}
 
-		//VkClearRect clearRects[2] = {};
-		//{
-		//	clearRects[0].rect.extent = g_windowSize;
-		//	//clearRects[0].baseArrayLayer = ;
-		//	clearRects[0].layerCount = 1;
+		int ww, wh;
+		SDL_GetWindowSize(wnd, &ww, &wh);
+		VkRenderingInfo renderInfo{ VK_STRUCTURE_TYPE_RENDERING_INFO };
+		{
+			renderInfo.renderArea.offset = {};
+			renderInfo.renderArea.extent.width = ww;
+			renderInfo.renderArea.extent.height = wh;
+			renderInfo.layerCount = 1;
+			renderInfo.colorAttachmentCount = 1;
+			renderInfo.pColorAttachments = &colorAttachmentInfo;
+			renderInfo.pDepthAttachment = &depthStencilAttachmentInfo;
+		}
+		vkCmdBeginRendering(currCommandBuffer, &renderInfo);
 
-		//	clearRects[1].rect.extent = g_windowSize;
-		//	//clearRects[1].baseArrayLayer = ;
-		//	clearRects[1].layerCount = 1;
-		//}
-		//vkCmdClearAttachments(currCommandBuffer, 2, clearAttachments, 2, clearRects);
+		VkViewport vp{};
+		{
+			vp.width = float(ww);
+			vp.height = float(wh);
+			vp.minDepth = 0.0f;
+			vp.maxDepth = 1.0f;
+		}
+		vkCmdSetViewport(currCommandBuffer, 0, 1, &vp);
+		
+		VkRect2D scissor{};
+		{
+			scissor.extent.width = ww;
+			scissor.extent.height = wh;
+		}
+		vkCmdSetScissor(currCommandBuffer, 0, 1, &scissor);
+
+		vkCmdBindPipeline(currCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, g_pipeline.pipeline);
+		VkDeviceSize vOffset{ 0 };
+		vkCmdBindDescriptorSets(currCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, g_pipeline.layout, 0, 1, &g_descSetLayout, 0, nullptr);
+		vkCmdBindVertexBuffers(currCommandBuffer, 0, 1, , &vOffset);
+		vkCmdBindIndexBuffer(currCommandBuffer,,,VK_INDEX_TYPE_UINT16);
+
+		vkCmdPushConstants(currCommandBuffer, g_pipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VkDeviceAddress), &(g_shaderDataBuffers[g_RD.imgIdx].deviceAddr));
+
+		vkCmdDrawIndexed(currCommandBuffer, , 1, 0, 0, 0);
 	}
 
 	void EndFrame()
 	{
-		VkCommandBuffer& currCommandBuffer = g_commandBuffers[g_currSwapImgIndex];
+		VkCommandBuffer& currCommandBuffer = g_RD.cmdBuffers[g_RD.imgIdx];
+		vkCmdEndRendering(currCommandBuffer);
+		
+		VkImageMemoryBarrier2 barrierPresent{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2 };
+		{
 
-		vkCmdEndRenderPass(currCommandBuffer);
+		}
 		vkEndCommandBuffer(currCommandBuffer);
 
-		VkPipelineStageFlags waitStages[]{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		VkPipelineStageFlags waitStages{ VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT };
 
 		VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
 		{
 			submitInfo.waitSemaphoreCount = 1;
-			submitInfo.pWaitSemaphores = &(g_semaphoresImageAvailable[g_currSwapImgIndex]);
-			submitInfo.pWaitDstStageMask = waitStages;
+			submitInfo.pWaitSemaphores = &(g_semaphoresImageAvailable[g_RD.imgIdx]);
+			submitInfo.pWaitDstStageMask = &waitStages;
 			submitInfo.commandBufferCount = 1;
 			submitInfo.pCommandBuffers = &(currCommandBuffer);
 			submitInfo.signalSemaphoreCount = 1;
-			submitInfo.pSignalSemaphores = &(g_semaphoresRenderFinished[g_currSwapImgIndex]);
+			submitInfo.pSignalSemaphores = &(g_semaphoresRenderFinished[g_RD.imgIdx]);
 		}
 
-		VkFence& currFence = g_drawFences[g_currSwapImgIndex];
-		vkQueueSubmit(g_renderQueue, 1, &submitInfo, currFence);
-
-		vkWaitForFences(g_renderDevice, 1, &currFence, VK_TRUE, UINT64_MAX);
-		vkResetFences(g_renderDevice, 1, &currFence);
+		Chk(vkQueueSubmit(g_RD.renderQueue, 1, &submitInfo, g_drawFences[g_RD.imgIdx]));
 
 		VkPresentInfoKHR presentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
 		{
 			presentInfo.waitSemaphoreCount = 1;
-			presentInfo.pWaitSemaphores = &(g_semaphoresRenderFinished[g_currSwapImgIndex]);
+			presentInfo.pWaitSemaphores = &(g_semaphoresRenderFinished[g_RD.imgIdx]);
 			presentInfo.swapchainCount = 1;
 			presentInfo.pSwapchains = &g_swapchain;
-			presentInfo.pImageIndices = &g_currSwapImgIndex;
+			presentInfo.pImageIndices = &g_RD.imgIdx;
 		}
-		vkQueuePresentKHR(g_renderQueue, &presentInfo);
+		Chk(vkQueuePresentKHR(g_RD.renderQueue, &presentInfo));
 		//++frameCount;
 	}
 
@@ -731,19 +725,17 @@ namespace bhVk
 		{
 			ImGui_ImplVulkan_PipelineInfo pipelineInfo = {};
 			{
-				pipelineInfo.RenderPass = g_renderPass;
-				//pipelineInfo.PipelineRenderingCreateInfo = ; //Setup if using dynamic rendering
-				//pipelineInfo.Subpass = ;
+				pipelineInfo.PipelineRenderingCreateInfo = ; //Setup if using dynamic rendering
 			}
 
 			ImGui_ImplVulkan_InitInfo vii = {};
 			{
 				vii.ApiVersion = BH_VK_API_VERSION;
 				vii.Instance = g_instance;
-				vii.PhysicalDevice = g_selectedRankedRenderDevice.physDevice;
-				vii.Device = g_renderDevice;
-				vii.QueueFamily = g_selectedRankedRenderDevice.preferredQueueFamily;
-				vii.Queue = g_renderQueue;
+				vii.PhysicalDevice = g_physicalRD.device;
+				vii.Device = g_RD.device;
+				vii.QueueFamily = g_physicalRD.preferredQueueFamily;
+				vii.Queue = g_RD.renderQueue;
 				//vii.DescriptorPool = ;
 				vii.DescriptorPoolSize = 1;
 				vii.MinImageCount = BH_NUM_FRAMES_IN_FLIGHT;
@@ -789,7 +781,7 @@ namespace bhVk
 	void EndImGuiFrame()
 	{
 		ImGui::Render();
-		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), g_commandBuffers[g_currSwapImgIndex]);
+		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), g_RD.cmdBuffers[g_RD.imgIdx]);
 	}
 
 	void ShowImGui(bool show)
@@ -821,10 +813,10 @@ namespace bhVk
 		}
 
 		MeshMemory* mmem = new MeshMemory();
-		if (vmaCreateBuffer(g_renderDeviceAllocator, &bci, &aci, &(mmem->buffer), &(mmem->allocation), nullptr) == VK_SUCCESS)
+		if (Chk(vmaCreateBuffer(g_renderDeviceAllocator, &bci, &aci, &(mmem->buffer), &(mmem->allocation), nullptr)))
 		{
 			void* bufferPtr = nullptr;
-			if (vmaMapMemory(g_renderDeviceAllocator, mmem->allocation, &bufferPtr) == VK_SUCCESS)
+			if (Chk(vmaMapMemory(g_renderDeviceAllocator, mmem->allocation, &bufferPtr)))
 			{
 				memcpy(bufferPtr, mesh->GetVertsData(), mesh->GetVertsSiz());
 				memcpy(reinterpret_cast<char*>(bufferPtr) + mesh->GetVertsSiz(), mesh->GetIndsData(), mesh->GetIndsSiz());
@@ -864,13 +856,13 @@ namespace bhVk
 		for (uint32_t dataBufferIdx = 0; dataBufferIdx < BH_NUM_FRAMES_IN_FLIGHT; ++dataBufferIdx)
 		{
 			ShaderDataBuffer& sd = g_shaderDataBuffers[dataBufferIdx];
-			if (vmaCreateBuffer(g_renderDeviceAllocator, &bci, &aci, &(sd.buffer), &(sd.allocation), &(sd.allocationInfo)) == VK_SUCCESS)
+			if (Chk(vmaCreateBuffer(g_renderDeviceAllocator, &bci, &aci, &(sd.buffer), &(sd.allocation), &(sd.allocationInfo))))
 			{
 				VkBufferDeviceAddressInfo bdaInfo{ VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO };
 				{
 					bdaInfo.buffer = sd.buffer;
 				}
-				sd.deviceAddr = vkGetBufferDeviceAddress(g_renderDevice, &bdaInfo);
+				sd.deviceAddr = vkGetBufferDeviceAddress(g_RD.device, &bdaInfo);
 			}
 		}
 
@@ -915,7 +907,7 @@ namespace bhVk
 		}
 
 		Texture newTexture;
-		if (vmaCreateImage(g_renderDeviceAllocator, &imgCI, &textureACI, &(newTexture.image), &(newTexture.allocation), nullptr) != VK_SUCCESS)
+		if (!Chk(vmaCreateImage(g_renderDeviceAllocator, &imgCI, &textureACI, &(newTexture.image), &(newTexture.allocation), nullptr)))
 		{
 			return false;
 		}
@@ -932,7 +924,7 @@ namespace bhVk
 			}
 		}
 		VkImageView newView = VK_NULL_HANDLE;
-		if (vkCreateImageView(g_renderDevice, &imgViewCI, g_allocator, &newView) != VK_SUCCESS)
+		if (!Chk(vkCreateImageView(g_RD.device, &imgViewCI, g_allocator, &newView)))
 		{
 			return false;
 		}
@@ -949,7 +941,7 @@ namespace bhVk
 			imgSrcACI.usage = VMA_MEMORY_USAGE_AUTO;
 		}
 		VmaAllocationInfo allocInfo;
-		if (vmaCreateBuffer(g_renderDeviceAllocator, &imgSrcCI, &imgSrcACI, &(imgSrc.buffer), &(imgSrc.allocation), &allocInfo) != VK_SUCCESS)
+		if (Chk(vmaCreateBuffer(g_renderDeviceAllocator, &imgSrcCI, &imgSrcACI, &(imgSrc.buffer), &(imgSrc.allocation), &allocInfo)))
 		{
 			return false;
 		}
@@ -957,7 +949,7 @@ namespace bhVk
 
 		VkFenceCreateInfo fenceCI{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
 		VkFence oneTimeFence{ VK_NULL_HANDLE };
-		if (vkCreateFence(g_renderDevice, &fenceCI, g_allocator, &oneTimeFence) != VK_SUCCESS)
+		if (!Chk(vkCreateFence(g_RD.device, &fenceCI, g_allocator, &oneTimeFence)))
 		{
 			return false;
 		}
@@ -965,10 +957,10 @@ namespace bhVk
 		VkCommandBuffer oneTimeCB{ VK_NULL_HANDLE };
 		VkCommandBufferAllocateInfo oneTimeCbAI{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
 		{
-			oneTimeCbAI.commandPool = g_commandPool;
+			oneTimeCbAI.commandPool = g_RD.cmdPool;
 			oneTimeCbAI.commandBufferCount = 1;
 		}
-		if (vkAllocateCommandBuffers(g_renderDevice, &oneTimeCbAI, &oneTimeCB) != VK_SUCCESS)
+		if (!Chk(vkAllocateCommandBuffers(g_RD.device, &oneTimeCbAI, &oneTimeCB)))
 		{
 			return false;
 		}
@@ -977,7 +969,7 @@ namespace bhVk
 		{
 			oneTimeCbBI.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 		}
-		if (vkBeginCommandBuffer(oneTimeCB, &oneTimeCbBI) == VK_SUCCESS)
+		if (Chk(vkBeginCommandBuffer(oneTimeCB, &oneTimeCbBI)))
 		{
 			VkImageMemoryBarrier2 barrierTexImage{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2 };
 			{
@@ -1038,7 +1030,7 @@ namespace bhVk
 			barrierTexInfo.pImageMemoryBarriers = &barrierTexRead;
 			vkCmdPipelineBarrier2(oneTimeCB, &barrierTexInfo);
 
-			vkEndCommandBuffer(oneTimeCB); // == VK_SUCCESS;
+			Chk(vkEndCommandBuffer(oneTimeCB));
 		}
 
 		VkSubmitInfo oneTimeSI{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
@@ -1046,8 +1038,8 @@ namespace bhVk
 			oneTimeSI.commandBufferCount = 1;
 			oneTimeSI.pCommandBuffers = &oneTimeCB;
 		}
-		vkQueueSubmit(g_renderQueue, 1, &oneTimeSI, oneTimeFence); //TODO: Check
-		vkWaitForFences(g_renderDevice, 1, &oneTimeFence, VK_TRUE, UINT64_MAX); //TODO: Check
+		Chk(vkQueueSubmit(g_RD.renderQueue, 1, &oneTimeSI, oneTimeFence));
+		Chk(vkWaitForFences(g_RD.device, 1, &oneTimeFence, VK_TRUE, UINT64_MAX));
 
 		VkSamplerCreateInfo samplerCI{ VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
 		{
@@ -1059,7 +1051,7 @@ namespace bhVk
 			samplerCI.maxLod = float(textureKTX->numLevels);
 		}
 		VkSampler newSampler{ VK_NULL_HANDLE };
-		vkCreateSampler(g_renderDevice, &samplerCI, g_allocator, &newSampler); //TODO: Check
+		Chk(vkCreateSampler(g_RD.device, &samplerCI, g_allocator, &newSampler));
 
 		ktxTexture_Destroy(textureKTX);
 		
@@ -1089,7 +1081,7 @@ namespace bhVk
 			descLayoutTexCI.bindingCount = 1;
 			descLayoutTexCI.pBindings = &descLayoutBindingTex;
 		}
-		if (vkCreateDescriptorSetLayout(g_renderDevice, &descLayoutTexCI, nullptr, &g_descSetLayout) != VK_SUCCESS)
+		if (!Chk(vkCreateDescriptorSetLayout(g_RD.device, &descLayoutTexCI, nullptr, &g_descSetLayout)))
 		{
 			return false;
 		}
@@ -1106,7 +1098,7 @@ namespace bhVk
 			descPoolCI.pPoolSizes = &descPoolSiz;
 		}
 		VkDescriptorPool descPool{ VK_NULL_HANDLE };
-		if (vkCreateDescriptorPool(g_renderDevice, &descPoolCI, g_allocator, &descPool) != VK_SUCCESS)
+		if (!Chk(vkCreateDescriptorPool(g_RD.device, &descPoolCI, g_allocator, &descPool)))
 		{
 			return false;
 		}
@@ -1125,7 +1117,7 @@ namespace bhVk
 			texDescSetAlloc.pSetLayouts = &g_descSetLayout;
 		};
 		VkDescriptorSet descriptorSetTex{ VK_NULL_HANDLE };
-		if (vkAllocateDescriptorSets(g_renderDevice, &texDescSetAlloc, &descriptorSetTex) != VK_SUCCESS)
+		if (!Chk(vkAllocateDescriptorSets(g_RD.device, &texDescSetAlloc, &descriptorSetTex)))
 		{
 			return false;
 		}
@@ -1138,7 +1130,7 @@ namespace bhVk
 			writeDescSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			writeDescSet.pImageInfo = g_textureDescriptors.data();
 		}
-		vkUpdateDescriptorSets(g_renderDevice, 1, &writeDescSet, 0, nullptr);
+		vkUpdateDescriptorSets(g_RD.device, 1, &writeDescSet, 0, nullptr);
 		return true;
 	}
 
@@ -1156,7 +1148,7 @@ namespace bhVk
 		}
 
 		VkShaderModule shaderModule{ VK_NULL_HANDLE };
-		if (vkCreateShaderModule(g_renderDevice, &smCI, g_allocator, &shaderModule) == VK_SUCCESS)
+		if (!Chk(vkCreateShaderModule(g_RD.device, &smCI, g_allocator, &shaderModule)))
 		{
 			return shaderModule;
 		}
@@ -1271,7 +1263,7 @@ namespace bhVk
 			depthStencilStateCI.depthWriteEnable = VK_TRUE;
 			depthStencilStateCI.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 		}
-		
+
 		////////////////////////////////////////////////////////////////////////////////
 		//Colorblend state
 		VkPipelineColorBlendAttachmentState colorBlendAttachment{};
@@ -1312,7 +1304,7 @@ namespace bhVk
 		}
 
 		VkPipelineLayout pipelineLayout{ VK_NULL_HANDLE };
-		if (vkCreatePipelineLayout(g_renderDevice, &layoutCI, g_allocator, &pipelineLayout) != VK_SUCCESS)
+		if (vkCreatePipelineLayout(g_RD.device, &layoutCI, g_allocator, &pipelineLayout) != VK_SUCCESS)
 		{
 			return false;
 		}
@@ -1338,11 +1330,6 @@ namespace bhVk
 			//gpCI.basePipelineIndex = ;
 		}
 
-		VkPipeline newPipeline{ VK_NULL_HANDLE };
-		if (vkCreateGraphicsPipelines(g_renderDevice, VK_NULL_HANDLE, 1, &graphicsPipelineCI, g_allocator, &newPipeline) == VK_SUCCESS)
-		{
-			return true;
-		}
-		return false;
+		return Chk(vkCreateGraphicsPipelines(g_RD.device, VK_NULL_HANDLE, 1, &graphicsPipelineCI, g_allocator, &g_pipeline));
 	}
 }

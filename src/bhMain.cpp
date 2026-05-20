@@ -3,6 +3,7 @@
 #include "bhConfig.hpp"
 #include "bhPlatform.hpp"
 #include "bhVk.hpp"
+#include "bhWorld.hpp"
 
 //DEBUG
 #include "bhGltf.hpp"
@@ -29,13 +30,15 @@ int main(int argc, char* argv[])
         if (bhVk::CreateRenderDevice(mainWindow))
         {
           //DEBUG
-          
-          //DEBUG
-
-          //DEBUG
           const char* cubeFile = bhPlatform::CreateResourcePath(bhPlatform::ResourceType::RT_MESH, "Cube.glb");
           bhGltf::ImportFile(cubeFile);
           delete[] cubeFile;
+
+          bhWorld world;
+          int ww, wh;
+          SDL_GetWindowSize(mainWindow, &ww, &wh);
+          bhCamera& cam = world.GetCamera();
+          cam.SetAspect(float(ww) / float(wh));
           //DEBUG
 
           SDL_ShowWindow(mainWindow); //TODO: Error check

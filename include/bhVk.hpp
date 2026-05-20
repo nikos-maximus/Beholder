@@ -38,12 +38,18 @@ namespace bhVk
       VkDeviceAddress deviceAddr;
   };
 
+  struct Pipeline
+  {
+    VkPipelineLayout layout{ VK_NULL_HANDLE };
+    VkPipeline pipeline{ VK_NULL_HANDLE };
+  };
+
   bool CreateInstance();
   void DestroyInstance();
   bool CreateRenderDevice(SDL_Window* wnd);
   void DestroyRenderDevice();
 
-  void BeginFrame();
+  void BeginFrame(SDL_Window* wnd, const bhCamera& cam);
   void EndFrame();
 
   struct MeshMemory

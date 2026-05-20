@@ -139,7 +139,7 @@
     <ClCompile Include="..\..\src\bhGltf.cpp" />
     <ClCompile Include="..\..\src\bhHash.cpp" />
     <ClCompile Include="..\..\src\bhLog.cpp" />
-    <ClCompile Include="..\..\src\bhMainVk.cpp" />
+    <ClCompile Include="..\..\src\bhMain.cpp" />
     <ClCompile Include="..\..\src\bhMesh.cpp" />
     <ClCompile Include="..\..\src\bhPlatform.cpp" />
     <ClCompile Include="..\..\src\bhStbImpl.cpp" />
@@ -147,6 +147,7 @@
     <ClCompile Include="..\..\src\bhVk.cpp" />
     <ClCompile Include="..\..\src\bhVMAImpl.cpp" />
     <ClCompile Include="..\..\src\bhVolkImpl.cpp" />
+    <ClCompile Include="..\..\src\bhWorld.cpp" />
     <ClCompile Include="..\..\thirdparty\imgui\backends\imgui_impl_sdl3.cpp" />
     <ClCompile Include="..\..\thirdparty\imgui\backends\imgui_impl_vulkan.cpp" />
     <ClCompile Include="..\..\thirdparty\imgui\imgui.cpp" />
@@ -166,6 +167,7 @@
     <ClInclude Include="..\..\include\bhTransform.hpp" />
     <ClInclude Include="..\..\include\bhUtil.hpp" />
     <ClInclude Include="..\..\include\bhVk.hpp" />
+    <ClInclude Include="..\..\include\bhWorld.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\Data\CompileShaders.cmd" />
