@@ -30,11 +30,13 @@ int main(int argc, char* argv[])
       SDL_Window* mainWindow = SDL_CreateWindowWithProperties(props);
       if (mainWindow)
       {
-        if (bhVk::CreateRenderDevice(mainWindow))
+        bhVk::RenderDevice* rd = bhVk::CreateRenderDevice(mainWindow);
+        if (rd)
         {
           //DEBUG
           const char* cubeFile = bhPlatform::CreateResourcePath(bhPlatform::ResourceType::RT_MESH, "Cube.glb");
-          bhGltf::ImportFile(cubeFile);
+          bhGltf::ImportData iData;
+          bhGltf::ImportFile(cubeFile, iData);
           delete[] cubeFile;
 
           bhWorld world;
@@ -61,10 +63,10 @@ int main(int argc, char* argv[])
               }
             }
 
-            bhVk::BeginFrame(mainWindow, &g_camera);
-            bhVk::EndFrame();
+            rd->BeginFrame(mainWindow, &g_camera);
+            rd->EndFrame();
           }
-          bhVk::DestroyRenderDevice();
+          bhVk::DestroyRenderDevice(rd);
         }
         SDL_DestroyWindow(mainWindow);
       }

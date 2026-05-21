@@ -4,10 +4,6 @@
 #include "bhMesh.hpp"
 #include "bhGltf.hpp"
 
-//DEBUG
-#include "bhVk.hpp"
-//DEBUG
-
 namespace bhGltf
 {
   ////////////////////////////////////////////////////////////////////////////////
@@ -159,21 +155,26 @@ namespace bhGltf
     return newMesh;
   }
 
-  bool ImportFile(const char* filePath)
+  bool ImportFile(const char* filePath, ImportData& iData)
   {
     tinygltf::TinyGLTF gltfContext;
     tinygltf::Model model;
     std::string err, warn;
-    bool result = false;
 
     const std::string filePathStr(filePath);
     if (filePathStr.rfind(".gltf") != std::string::npos)  //ASCII file
     {
-      result = gltfContext.LoadASCIIFromFile(&model, &err, &warn, filePath);
+      if (!gltfContext.LoadASCIIFromFile(&model, &err, &warn, filePath))
+      {
+        goto error;
+      }
     }
     else if (filePathStr.rfind(".glb") != std::string::npos)  //Binary file
     {
-      result = gltfContext.LoadBinaryFromFile(&model, &err, &warn, filePath);
+      if (!gltfContext.LoadBinaryFromFile(&model, &err, &warn, filePath))
+      {
+        goto error;
+      }
     }
     else
     {
@@ -181,6 +182,18 @@ namespace bhGltf
       return false;
     }
 
+    iData.meshes.reserve(model.meshes.size());
+    for (const auto& mesh : model.meshes)
+    {
+      bhMesh* newMesh = ImportMesh(mesh, model);
+      if (newMesh)
+      {
+        iData.meshes.push_back(newMesh);
+      }
+    }
+    return true;
+
+  error:
     if (!err.empty())
     {
       bhLog::Message(bhLog::LOG_CATEGORY_APPLICATION, bhLog::LOG_PRIORITY_ERROR, err.c_str());
@@ -189,22 +202,8 @@ namespace bhGltf
     {
       bhLog::Message(bhLog::LOG_CATEGORY_APPLICATION, bhLog::LOG_PRIORITY_WARN, warn.c_str());
     }
-    if (!result)
-    {
-      bhLog::Message(bhLog::LOG_CATEGORY_APPLICATION, bhLog::LOG_PRIORITY_ERROR, "Failed to import file ", filePath);
-      return false;
-    }
-
-    for (const auto& mesh : model.meshes)
-    {
-      bhMesh* newMesh = ImportMesh(mesh, model);
-      //DEBUG
-      bhVk::CreateMeshBuffer(newMesh);
-      bhVk::DestroyMeshBuffer(newMesh);
-      //DEBUG
-    }
-
-    return true;
+    bhLog::Message(bhLog::LOG_CATEGORY_APPLICATION, bhLog::LOG_PRIORITY_ERROR, "Failed to import file ", filePath);
+    return false;
   }
 }
 

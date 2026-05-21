@@ -12,8 +12,33 @@ namespace bhVk
 {
   class RenderDevice;
 
-  VkPipelineLayout CreatePipelineLayout(RenderDevice* rd);
-  VkPipeline CreatePipeline(RenderDevice* rd, VkPipelineLayout layout);
+  ////////////////////////////////////////////////////////////////////////////////
+  struct PipelineLayout
+  {
+    VkDescriptorSetLayout dsl{ VK_NULL_HANDLE };
+    VkPipelineLayout pl{ VK_NULL_HANDLE };
+  };
+
+  ////////////////////////////////////////////////////////////////////////////////
+  class Pipeline
+  {
+  public:
+    Pipeline() = delete;
+    Pipeline(const PipelineLayout& _pl)
+      : pl(_pl)
+    {}
+    
+    bool Create(RenderDevice* rd);
+    void Destroy(RenderDevice* rd);
+  
+  protected:
+  private:
+    const PipelineLayout pl;
+    VkPipeline pipeline{ VK_NULL_HANDLE };
+  };
+
+  PipelineLayout CreatePipelineLayout(RenderDevice* rd);
+  void DestroyPipelineLayout(RenderDevice* rd, PipelineLayout& pl);
 }
 
 #endif //BH_VK_PIPELINE_HPP

@@ -78,9 +78,12 @@ namespace bhVk
     void DestroyShaderDataBuffers();
     bool CreateTextureFromFile(const char* filePath);
 
-    VkDescriptorSetLayout CreateDescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo& ci);
-    VkPipelineLayout CreatePipelineLayout(const VkPipelineLayoutCreateInfo& ci);
-    VkPipeline CreatePipeline(const VkGraphicsPipelineCreateInfo& ci);
+    VkDescriptorSetLayout CreateDescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo& dslCI);
+    void DestroyDescriptorSetLayout(VkDescriptorSetLayout& dsl);
+    VkPipelineLayout CreatePipelineLayout(const VkPipelineLayoutCreateInfo& plCI);
+    void DestroyPipelineLayout(VkPipelineLayout& pl);
+    VkPipeline CreatePipeline(const VkGraphicsPipelineCreateInfo& gpCI);
+    void DestroyPipeline(VkPipeline& pl);
     VkShaderModule CreateShaderModule(const char* filePath);
 
   protected:

@@ -29,7 +29,8 @@ namespace bhVk
 	extern VkFormat g_presentImageFormat, g_depthStencilFormat;
 	static constexpr uint32_t NUM_TEXTURE_SAMPLERS{ 2 };
 
-	VkPipelineLayout CreatePipelineLayout(RenderDevice* rd)
+	////////////////////////////////////////////////////////////////////////////////
+	PipelineLayout CreatePipelineLayout(RenderDevice* rd)
 	{
 		VkDescriptorBindingFlags descBindFlags{ VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT };
 
@@ -46,10 +47,10 @@ namespace bhVk
 			descLayoutTexCI.bindingCount = 1;
 			descLayoutTexCI.pBindings = &descLayoutBindingTex;
 		}
-		VkDescriptorSetLayout descSetLayout = rd->CreateDescriptorSetLayout(descLayoutTexCI);
-		if (!descSetLayout)
+		VkDescriptorSetLayout dsl = rd->CreateDescriptorSetLayout(descLayoutTexCI);
+		if (!dsl)
 		{
-			return VK_NULL_HANDLE;
+			return {};
 		}
 
 		VkPushConstantRange pushConstRange{};
@@ -61,14 +62,26 @@ namespace bhVk
 		VkPipelineLayoutCreateInfo layoutCI{ VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO };
 		{
 			layoutCI.setLayoutCount = 1;
-			layoutCI.pSetLayouts = &descSetLayout;
+			layoutCI.pSetLayouts = &dsl;
 			layoutCI.pushConstantRangeCount = 1;
 			layoutCI.pPushConstantRanges = &pushConstRange;
 		}
-		return rd->CreatePipelineLayout(layoutCI);
+		VkPipelineLayout pl = rd->CreatePipelineLayout(layoutCI);
+		if (!pl)
+		{
+			return {};
+		}
+		return { dsl, pl };
 	}
 
-	VkPipeline CreatePipeline(RenderDevice* rd, VkPipelineLayout layout)
+	void DestroyPipelineLayout(RenderDevice* rd, PipelineLayout& pl)
+	{
+		rd->DestroyPipelineLayout(pl.pl);
+		rd->DestroyDescriptorSetLayout(pl.dsl);
+	}
+
+	////////////////////////////////////////////////////////////////////////////////
+	bool Pipeline::Create(RenderDevice* rd)
 	{
 		////////////////////////////////////////////////////////////////////////////////
 		//Rendering
@@ -82,7 +95,7 @@ namespace bhVk
 		////////////////////////////////////////////////////////////////////////////////
 		//Shader state
 		VkShaderModule shader01 = rd->CreateShaderModule(bhPlatform::CreateResourcePath(bhPlatform::ResourceType::RT_SHADER, "Shader01.out"));
-		if (!shader01) return VK_NULL_HANDLE;
+		if (!shader01) return false;
 
 		VkPipelineShaderStageCreateInfo shaderStageCI[2]{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
 		{
@@ -217,12 +230,18 @@ namespace bhVk
 			graphicsPipelineCI.pDepthStencilState = &depthStencilStateCI;
 			graphicsPipelineCI.pColorBlendState = &colorBlendStateCI;
 			graphicsPipelineCI.pDynamicState = &dynamicStateCI;
-			graphicsPipelineCI.layout = layout;
+			graphicsPipelineCI.layout = pl.pl;
 			//gpCI.renderPass = ;
 			//gpCI.subpass = ;
 			//gpCI.basePipelineHandle = ;
 			//gpCI.basePipelineIndex = ;
 		}
 		return rd->CreatePipeline(graphicsPipelineCI);
+	}
+
+	void Pipeline::Destroy(RenderDevice* rd)
+	{
+		rd->DestroyPipeline(pipeline);
+		pipeline = VK_NULL_HANDLE;
 	}
 }

@@ -1126,33 +1126,51 @@ namespace bhVk
 		return VK_NULL_HANDLE;
 	}
 
-	VkPipelineLayout RenderDevice::CreatePipelineLayout(const VkPipelineLayoutCreateInfo& ci)
+	VkPipelineLayout RenderDevice::CreatePipelineLayout(const VkPipelineLayoutCreateInfo& plCI)
 	{
 		VkPipelineLayout layout{ VK_NULL_HANDLE };
-		if (Chk(vkCreatePipelineLayout(device, &ci, g_allocator, &layout)))
+		if (Chk(vkCreatePipelineLayout(device, &plCI, g_allocator, &layout)))
 		{
 			return layout;
 		}
 		return VK_NULL_HANDLE;
 	}
 
-	VkDescriptorSetLayout RenderDevice::CreateDescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo& ci)
+	void RenderDevice::DestroyPipelineLayout(VkPipelineLayout& pl)
+	{
+		vkDestroyPipelineLayout(device, pl, g_allocator);
+		pl = VK_NULL_HANDLE;
+	}
+
+	VkDescriptorSetLayout RenderDevice::CreateDescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo& dslCI)
 	{
 		VkDescriptorSetLayout layout{ VK_NULL_HANDLE };
-		if (Chk(vkCreateDescriptorSetLayout(device, &ci, g_allocator, &layout)))
+		if (Chk(vkCreateDescriptorSetLayout(device, &dslCI, g_allocator, &layout)))
 		{
 			return layout;
 		}
 		return VK_NULL_HANDLE;
 	}
 
-	VkPipeline RenderDevice::CreatePipeline(const VkGraphicsPipelineCreateInfo& ci)
+	void RenderDevice::DestroyDescriptorSetLayout(VkDescriptorSetLayout& dsl)
+	{
+		vkDestroyDescriptorSetLayout(device, dsl, g_allocator);
+		dsl = VK_NULL_HANDLE;
+	}
+
+	VkPipeline RenderDevice::CreatePipeline(const VkGraphicsPipelineCreateInfo& gpCI)
 	{
 		VkPipeline pipeline{ VK_NULL_HANDLE };
-		if (Chk(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &ci, g_allocator, &pipeline)))
+		if (Chk(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &gpCI, g_allocator, &pipeline)))
 		{
 			return pipeline;
 		}
 		return VK_NULL_HANDLE;
+	}
+
+	void RenderDevice::DestroyPipeline(VkPipeline& pl)
+	{
+		vkDestroyPipeline(device, pl, g_allocator);
+		pl = VK_NULL_HANDLE;
 	}
 }

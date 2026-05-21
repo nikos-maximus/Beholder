@@ -1,12 +1,19 @@
 #ifndef BH_GLTF_HPP
 #define BH_GLTF_HPP
 
+#include <vector>
+
 class bhMesh;
 
 namespace bhGltf
 {
   //////////////////////////////////////////////////////////////////////////////////
-  bool ImportFile(const char* filePath);
+  struct ImportData
+  {
+    std::vector<bhMesh*> meshes;
+  };
+
+  bool ImportFile(const char* filePath, ImportData& iData);
 
   enum PrimitiveMode
   {
