@@ -10,6 +10,8 @@ struct SDL_Window;
 
 namespace bhVk
 {
+  class GraphicsPipeline;
+
   static constexpr uint32_t BH_NUM_FRAMES_IN_FLIGHT{ 2 };
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -68,7 +70,7 @@ namespace bhVk
     RenderDevice(VkDevice _device, const PhysicalDevice& _phDevice, const VkInstance& _instance);
     bool Init(SDL_Window* wnd);
     void Destroy();
-    void BeginFrame(SDL_Window* wnd, const bhCamera* cam);
+    void BeginFrame(const GraphicsPipeline& pl, const bhCamera* cam);
     void EndFrame();
 
     bool CreateMeshBuffer(bhMesh* mesh);
@@ -95,7 +97,7 @@ namespace bhVk
     void BeginImGuiFrame();
     void EndImGuiFrame();
 
-    bool SetupDescriptors();
+    bool SetupDescriptors(const VkDescriptorSetLayout& dsl);
 
     const VkInstance& instance;
     const PhysicalDevice phDevice;
@@ -118,6 +120,9 @@ namespace bhVk
     VkImageView depthStencilView{ VK_NULL_HANDLE };
 
     ShaderDataBuffer shaderDataBuffers[BH_NUM_FRAMES_IN_FLIGHT];
+
+    VkDescriptorPool descPool{ VK_NULL_HANDLE };
+    VkExtent2D windowSiz{};
   };
 
   ////////////////////////////////////////////////////////////////////////////////

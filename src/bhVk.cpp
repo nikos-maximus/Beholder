@@ -5,6 +5,7 @@
 
 #include "bhDefines.hpp"
 #include "bhVk.hpp"
+#include "bhVkPipeline.hpp"
 #include "bhMesh.hpp"
 #include "bhUtil.hpp"
 //#include "bhPlatform.hpp"
@@ -27,7 +28,7 @@ namespace bhVk
 {
 	static constexpr uint32_t BH_VK_API_VERSION = VK_API_VERSION_1_3;
 	constexpr VkFormat g_presentImageFormat{ VK_FORMAT_B8G8R8A8_SRGB }, g_depthStencilFormat{ VK_FORMAT_D24_UNORM_S8_UINT };
-	
+
 	static VkInstance g_instance{ VK_NULL_HANDLE };
 	VkAllocationCallbacks* g_allocator{ nullptr };
 
@@ -51,21 +52,12 @@ namespace bhVk
 	};
 
 	////////////////////////////////////////////////////////////////////////////////
-	static std::vector<Texture> g_textures;
-
-
-
-
 	static constexpr uint8_t BH_IMGUI_FLAG_READY = BH_BIT(0);
 	static constexpr uint8_t BH_IMGUI_FLAG_VISIBLE = BH_BIT(1);
 
 	static uint8_t g_imguiFlags = 0;
 
 	static std::vector<VkDescriptorImageInfo> g_textureDescriptors;
-
-
-
-
 
 	int CompareRankedDevice(const void* a, const void* b)
 	{
@@ -340,7 +332,8 @@ namespace bhVk
 		: device(_device)
 		, phDevice(_phDevice)
 		, instance(_instance)
-	{}
+	{
+	}
 
 	bool RenderDevice::Init(SDL_Window* wnd)
 	{
@@ -407,7 +400,7 @@ namespace bhVk
 
 		int ww, wh;
 		SDL_GetWindowSize(wnd, &ww, &wh);
-		VkExtent2D wSiz{ uint32_t(ww), uint32_t(wh) };
+		windowSiz = { uint32_t(ww), uint32_t(wh) };
 
 		VkSwapchainCreateInfoKHR swapchainCI{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
 		{
@@ -415,7 +408,7 @@ namespace bhVk
 			swapchainCI.minImageCount = BH_NUM_FRAMES_IN_FLIGHT;
 			swapchainCI.imageFormat = g_presentImageFormat;
 			swapchainCI.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
-			swapchainCI.imageExtent = wSiz;
+			swapchainCI.imageExtent = windowSiz;
 			swapchainCI.imageArrayLayers = 1;
 			swapchainCI.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 			swapchainCI.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -456,7 +449,7 @@ namespace bhVk
 		{
 			depthStencilImageCI.imageType = VK_IMAGE_TYPE_2D;
 			depthStencilImageCI.format = g_depthStencilFormat;
-			depthStencilImageCI.extent = { wSiz.width, wSiz.height, 1 };
+			depthStencilImageCI.extent = { windowSiz.width, windowSiz.height, 1 };
 			depthStencilImageCI.mipLevels = 1;
 			depthStencilImageCI.arrayLayers = 1;
 			depthStencilImageCI.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -501,6 +494,24 @@ namespace bhVk
 		//}
 
 		////////////////////////////////////////////////////////////////////////////////
+		// Create descriptor pool
+		VkDescriptorPoolSize descPoolSiz;
+		{
+			descPoolSiz.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			descPoolSiz.descriptorCount = 2;
+		}
+		VkDescriptorPoolCreateInfo descPoolCI{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
+		{
+			descPoolCI.maxSets = 1;
+			descPoolCI.poolSizeCount = 1;
+			descPoolCI.pPoolSizes = &descPoolSiz;
+		}
+		if (!Chk(vkCreateDescriptorPool(device, &descPoolCI, g_allocator, &descPool)))
+		{
+			return false;
+		}
+
+		////////////////////////////////////////////////////////////////////////////////
 		// Create sync objects
 		VkSemaphoreCreateInfo semaphoreCI{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
 		VkFenceCreateInfo fenceCI{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
@@ -516,6 +527,7 @@ namespace bhVk
 			result &= (vkCreateFence(device, &fenceCI, g_allocator, &(drawFences[i])) == VK_SUCCESS);
 			if (!result) break;
 		}
+
 		return result;
 	}
 
@@ -529,6 +541,10 @@ namespace bhVk
 			vkDestroySemaphore(device, semaphoresImageAvailable[i], g_allocator);
 			vkDestroyFence(device, drawFences[i], g_allocator);
 		}
+
+		////////////////////////////////////////////////////////////////////////////////
+		// Destroy descriptor pool
+		vkDestroyDescriptorPool(device, descPool, g_allocator);
 
 		////////////////////////////////////////////////////////////////////////////////
 		// Destroy framebuffers
@@ -554,7 +570,7 @@ namespace bhVk
 		}
 	}
 
-	void RenderDevice::BeginFrame(SDL_Window* wnd, const bhCamera* cam)
+	void RenderDevice::BeginFrame(const GraphicsPipeline& pl, const bhCamera* cam)
 	{
 		SDL_assert(cam);
 
@@ -567,13 +583,13 @@ namespace bhVk
 		//shaderData.model;
 		memcpy(shaderDataBuffers[imgIdx].allocationInfo.pMappedData, &shaderData, sizeof(ShaderData));
 
-		VkCommandBuffer& currCommandBuffer = cmdBuffers[imgIdx];
-		Chk(vkResetCommandBuffer(currCommandBuffer, 0));
+		VkCommandBuffer& currCB = cmdBuffers[imgIdx];
+		Chk(vkResetCommandBuffer(currCB, 0));
 		VkCommandBufferBeginInfo commandBufferBI{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
 		{
 			commandBufferBI.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 		}
-		if (Chk(vkBeginCommandBuffer(currCommandBuffer, &commandBufferBI)))
+		if (Chk(vkBeginCommandBuffer(currCB, &commandBufferBI)))
 		{
 			//Check error
 			return;
@@ -614,7 +630,7 @@ namespace bhVk
 			dependencyInfo.imageMemoryBarrierCount = 2;
 			dependencyInfo.pImageMemoryBarriers = outputBarriers;
 		}
-		vkCmdPipelineBarrier2(currCommandBuffer, &dependencyInfo);
+		vkCmdPipelineBarrier2(currCB, &dependencyInfo);
 
 		VkRenderingAttachmentInfo colorAttachmentInfo{ VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO };
 		{
@@ -634,57 +650,57 @@ namespace bhVk
 			depthStencilAttachmentInfo.clearValue = { 1.0f, 0.0f };
 		}
 
-		int ww, wh;
-		SDL_GetWindowSize(wnd, &ww, &wh);
 		VkRenderingInfo renderInfo{ VK_STRUCTURE_TYPE_RENDERING_INFO };
 		{
 			renderInfo.renderArea.offset = {};
-			renderInfo.renderArea.extent.width = ww;
-			renderInfo.renderArea.extent.height = wh;
+			//renderInfo.renderArea.extent.width = ww;
+			//renderInfo.renderArea.extent.height = wh;
+			renderInfo.renderArea.extent = windowSiz;
 			renderInfo.layerCount = 1;
 			renderInfo.colorAttachmentCount = 1;
 			renderInfo.pColorAttachments = &colorAttachmentInfo;
 			renderInfo.pDepthAttachment = &depthStencilAttachmentInfo;
 		}
-		vkCmdBeginRendering(currCommandBuffer, &renderInfo);
+		vkCmdBeginRendering(currCB, &renderInfo);
 
 		VkViewport vp{};
 		{
-			vp.width = float(ww);
-			vp.height = float(wh);
+			vp.width = float(windowSiz.width);
+			vp.height = float(windowSiz.height);
 			vp.minDepth = 0.0f;
 			vp.maxDepth = 1.0f;
 		}
-		vkCmdSetViewport(currCommandBuffer, 0, 1, &vp);
+		vkCmdSetViewport(currCB, 0, 1, &vp);
 
 		VkRect2D scissor{};
 		{
-			scissor.extent.width = ww;
-			scissor.extent.height = wh;
+			//scissor.extent.width = ww;
+			//scissor.extent.height = wh;
+			scissor.extent = windowSiz;
 		}
-		vkCmdSetScissor(currCommandBuffer, 0, 1, &scissor);
+		vkCmdSetScissor(currCB, 0, 1, &scissor);
 
-		vkCmdBindPipeline(currCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, g_pipeline.pipeline);
+		pl.Bind(currCB);
 		VkDeviceSize vOffset{ 0 };
-		vkCmdBindDescriptorSets(currCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, g_pipeline.layout, 0, 1, &g_descSetLayout, 0, nullptr);
-		vkCmdBindVertexBuffers(currCommandBuffer, 0, 1, , &vOffset);
-		vkCmdBindIndexBuffer(currCommandBuffer, , , VK_INDEX_TYPE_UINT16);
+		pl.BindDescriptorSet(currCB, ds);
+		vkCmdBindVertexBuffers(currCB, 0, 1, , &vOffset);
+		vkCmdBindIndexBuffer(currCB, , , VK_INDEX_TYPE_UINT16);
 
-		vkCmdPushConstants(currCommandBuffer, g_pipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VkDeviceAddress), &(shaderDataBuffers[imgIdx].deviceAddr));
+		vkCmdPushConstants(currCB, pll.pl, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VkDeviceAddress), &(shaderDataBuffers[imgIdx].deviceAddr));
 
-		vkCmdDrawIndexed(currCommandBuffer, , 1, 0, 0, 0);
+		vkCmdDrawIndexed(currCB, , 1, 0, 0, 0);
 	}
 
 	void RenderDevice::EndFrame()
 	{
-		VkCommandBuffer& currCommandBuffer = cmdBuffers[imgIdx];
-		vkCmdEndRendering(currCommandBuffer);
+		VkCommandBuffer& currCB = cmdBuffers[imgIdx];
+		vkCmdEndRendering(currCB);
 
 		VkImageMemoryBarrier2 barrierPresent{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2 };
 		{
 
 		}
-		vkEndCommandBuffer(currCommandBuffer);
+		vkEndCommandBuffer(currCB);
 
 		VkPipelineStageFlags waitStages{ VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT };
 
@@ -694,7 +710,7 @@ namespace bhVk
 			submitInfo.pWaitSemaphores = &(semaphoresImageAvailable[imgIdx]);
 			submitInfo.pWaitDstStageMask = &waitStages;
 			submitInfo.commandBufferCount = 1;
-			submitInfo.pCommandBuffers = &(currCommandBuffer);
+			submitInfo.pCommandBuffers = &(currCB);
 			submitInfo.signalSemaphoreCount = 1;
 			submitInfo.pSignalSemaphores = &(semaphoresRenderFinished[imgIdx]);
 		}
@@ -1049,30 +1065,13 @@ namespace bhVk
 		return true;
 	}
 
-	bool RenderDevice::SetupDescriptors()
+	bool RenderDevice::SetupDescriptors(const VkDescriptorSetLayout& dsl)
 	{
 		//VkDescriptorSetLayoutBindingFlagsCreateInfo descBindingFlagsCI{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO };
 		//{
 		//	descBindingFlagsCI.bindingCount = 1;
 		//	descBindingFlagsCI.pBindingFlags = &descBindFlags;
 		//}
-
-		VkDescriptorPoolSize descPoolSiz;
-		{
-			descPoolSiz.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			descPoolSiz.descriptorCount = uint32_t(g_textures.size());
-		}
-		VkDescriptorPoolCreateInfo descPoolCI{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
-		{
-			descPoolCI.maxSets = 1;
-			descPoolCI.poolSizeCount = 1;
-			descPoolCI.pPoolSizes = &descPoolSiz;
-		}
-		VkDescriptorPool descPool{ VK_NULL_HANDLE };
-		if (!Chk(vkCreateDescriptorPool(device, &descPoolCI, g_allocator, &descPool)))
-		{
-			return false;
-		}
 
 		uint32_t variableDescCount{ static_cast<uint32_t>(g_textures.size()) };
 		VkDescriptorSetVariableDescriptorCountAllocateInfo variableDescCountAI{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO_EXT };
@@ -1085,7 +1084,7 @@ namespace bhVk
 			texDescSetAlloc.pNext = &variableDescCountAI;
 			texDescSetAlloc.descriptorPool = descPool;
 			texDescSetAlloc.descriptorSetCount = 1;
-			texDescSetAlloc.pSetLayouts = &g_descSetLayout;
+			texDescSetAlloc.pSetLayouts = &dsl;
 		};
 		VkDescriptorSet descriptorSetTex{ VK_NULL_HANDLE };
 		if (!Chk(vkAllocateDescriptorSets(device, &texDescSetAlloc, &descriptorSetTex)))

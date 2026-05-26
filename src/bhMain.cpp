@@ -37,6 +37,8 @@ int main(int argc, char* argv[])
           const char* cubeFile = bhPlatform::CreateResourcePath(bhPlatform::ResourceType::RT_MESH, "Cube.glb");
           bhGltf::ImportData iData;
           bhGltf::ImportFile(cubeFile, iData);
+          iData.meshes;
+
           delete[] cubeFile;
 
           bhWorld world;

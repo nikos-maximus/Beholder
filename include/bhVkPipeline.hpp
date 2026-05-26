@@ -20,17 +20,19 @@ namespace bhVk
   };
 
   ////////////////////////////////////////////////////////////////////////////////
-  class Pipeline
+  class GraphicsPipeline
   {
   public:
-    Pipeline() = delete;
-    Pipeline(const PipelineLayout& _pl)
+    GraphicsPipeline() = delete;
+    GraphicsPipeline(const PipelineLayout& _pl)
       : pl(_pl)
     {}
     
     bool Create(RenderDevice* rd);
     void Destroy(RenderDevice* rd);
-  
+    void Bind(const VkCommandBuffer& cb) const;
+    void BindDescriptorSet(const VkCommandBuffer& cb, const VkDescriptorSet& ds) const;
+
   protected:
   private:
     const PipelineLayout pl;

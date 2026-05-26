@@ -81,7 +81,7 @@ namespace bhVk
 	}
 
 	////////////////////////////////////////////////////////////////////////////////
-	bool Pipeline::Create(RenderDevice* rd)
+	bool GraphicsPipeline::Create(RenderDevice* rd)
 	{
 		////////////////////////////////////////////////////////////////////////////////
 		//Rendering
@@ -239,9 +239,19 @@ namespace bhVk
 		return rd->CreatePipeline(graphicsPipelineCI);
 	}
 
-	void Pipeline::Destroy(RenderDevice* rd)
+	void GraphicsPipeline::Destroy(RenderDevice* rd)
 	{
 		rd->DestroyPipeline(pipeline);
 		pipeline = VK_NULL_HANDLE;
+	}
+
+	void GraphicsPipeline::Bind(const VkCommandBuffer& cb) const
+	{
+		vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+	}
+
+	void GraphicsPipeline::BindDescriptorSet(const VkCommandBuffer& cb, const VkDescriptorSet& ds) const
+	{
+		vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pl.pl, 0, 1, &ds, 0, nullptr);
 	}
 }
