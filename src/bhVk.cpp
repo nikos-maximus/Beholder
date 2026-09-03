@@ -18,8 +18,8 @@
 #endif
 
 #include <imgui.h>
-#include <imgui_impl_sdl3.h>
-#include <imgui_impl_vulkan.h>
+#include <backends/imgui_impl_sdl3.h>
+#include <backends/imgui_impl_vulkan.h>
 
 #include <ktx.h>
 #include <ktxvulkan.h>
