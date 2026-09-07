@@ -1,3 +1,0 @@
-env = Environment( CPPPATH=['C:/lib/SDL/include', 'C:/lib/stb', './include'] )
-
-env.Program(target='Beholder_SDL', srcdir = 'src', source='main.cpp')
