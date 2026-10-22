@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Workspace Name="Beholder" Database="" Version="10000">
+  <Project Name="Beholder3D" Path="Beholder3D/Beholder3D.project" Active="Yes"/>
+  <Project Name="Beholder2D" Path="Beholder2D/Beholder2D.project" Active="No"/>
+  <BuildMatrix>
+    <WorkspaceConfiguration Name="Release">
+      <Environment/>
+      <Project Name="Beholder3D" ConfigName="Release"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="Debug">
+      <Environment/>
+      <Project Name="Beholder2D" ConfigName="Debug"/>
+    </WorkspaceConfiguration>
+  </BuildMatrix>
+</CodeLite_Workspace>

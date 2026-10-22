@@ -2,25 +2,27 @@
 #include <SDL3/SDL_video.h>
 #include "bhConfig.hpp"
 
-int bhConfig::Load(const char* path, bhConfig& cfg)
+size_t bhConfig::Load(const char* path, bhConfig& cfg)
 {
-  FILE* file = NULL;
-  int result = fopen_s(&file, path, "rb");
-  if (result == 0)
+  size_t result{ 0 };
+  FILE* file = fopen(path, "rb");
+  if (file)
   {
-    fread(&cfg, sizeof(bhConfig), 1, file);
+    constexpr size_t confSiz = sizeof(bhConfig);
+    if (fread(&cfg, confSiz, 1, file) == confSiz) { result = confSiz; }
     fclose(file);
   }
   return result;
 }
 
-int bhConfig::Save(const char* path, const bhConfig& cfg)
+size_t bhConfig::Save(const char* path, const bhConfig& cfg)
 {
-  FILE* file = NULL;
-  int result = fopen_s(&file, path, "wb");
-  if (result == 0)
+  size_t result{ 0 };
+  FILE* file = fopen(path, "wb");
+  if (file)
   {
-    fwrite(&cfg, sizeof(bhConfig), 1, file);
+    constexpr size_t confSiz = sizeof(bhConfig);
+    if (fwrite(&cfg, confSiz, 1, file) == confSiz) { result = confSiz; }
     fclose(file);
   }
   return result;

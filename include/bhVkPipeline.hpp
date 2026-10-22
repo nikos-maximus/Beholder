@@ -15,32 +15,27 @@ namespace bhVk
   ////////////////////////////////////////////////////////////////////////////////
   struct PipelineLayout
   {
-    VkDescriptorSetLayout dsl{ VK_NULL_HANDLE };
-    VkPipelineLayout pl{ VK_NULL_HANDLE };
+    VkDescriptorSetLayout descSetLayout { VK_NULL_HANDLE };
+    VkPipelineLayout plLayout { VK_NULL_HANDLE };
   };
+  
+  PipelineLayout CreatePipelineLayout(const RenderDevice* rd);
+  void DestroyPipelineLayout(const RenderDevice* rd, PipelineLayout& plLayout);
 
   ////////////////////////////////////////////////////////////////////////////////
   class GraphicsPipeline
   {
   public:
-    GraphicsPipeline() = delete;
-    GraphicsPipeline(const PipelineLayout& _pl)
-      : pl(_pl)
-    {}
-    
-    bool Create(RenderDevice* rd);
-    void Destroy(RenderDevice* rd);
+    bool Create(const RenderDevice* rd, const PipelineLayout& plLayout);
+    void Destroy(const RenderDevice* rd);
     void Bind(const VkCommandBuffer& cb) const;
     void BindDescriptorSet(const VkCommandBuffer& cb, const VkDescriptorSet& ds) const;
 
   protected:
   private:
-    const PipelineLayout pl;
+    const PipelineLayout plLayout;
     VkPipeline pipeline{ VK_NULL_HANDLE };
   };
-
-  PipelineLayout CreatePipelineLayout(RenderDevice* rd);
-  void DestroyPipelineLayout(RenderDevice* rd, PipelineLayout& pl);
 }
 
 #endif //BH_VK_PIPELINE_HPP

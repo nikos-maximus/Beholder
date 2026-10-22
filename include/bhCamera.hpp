@@ -17,7 +17,7 @@ public:
 protected:
 private:
 	ViewProjection viewProj;
-	glm::vec3 position;
+	//glm::vec3 position;
 	float aspect{ 1.0f };
 };
 

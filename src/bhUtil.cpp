@@ -40,7 +40,7 @@ namespace bhUtil
 
   long GetFileSize(FILE* file)
   {
-    fpos_t currPos = 0;
+    fpos_t currPos{ 0 };
     fgetpos(file, &currPos); // in case we do a GetFileSize
     fseek(file, 0, SEEK_END);
     long sz = ftell(file);
@@ -50,9 +50,8 @@ namespace bhUtil
 
   FileData ReadFile(const char* filePath, bool binary)
   {
-    FILE* file = nullptr;
-    errno_t err = fopen_s(&file, filePath, binary ? "rb" : "r");
-    if (err)
+    FILE* file = fopen(filePath, binary ? "rb" : "r");
+    if (!file)
     {
       // TODO: Report error
       bhLog::Message(bhLog::LOG_CATEGORY_APPLICATION, bhLog::LOG_PRIORITY_ERROR, "Could not open file %s for reading", filePath);

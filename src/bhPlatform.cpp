@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <sys/stat.h>
 #include <SDL3/SDL.h>
 #include "bhPlatform.hpp"
 #include "bhUtil.hpp"
@@ -65,7 +66,7 @@ namespace bhPlatform
   {
     size_t len = strlen(GetExecutableDir()) + strlen(BH_DIR_SEPARATOR) + strlen(configName) + 1;
     char* cfp = new char[len];
-    sprintf_s(cfp, len, "%s%s%s", GetExecutableDir(), BH_DIR_SEPARATOR, configName);
+    snprintf(cfp, len, "%s%s%s", GetExecutableDir(), BH_DIR_SEPARATOR, configName);
     return cfp;
   }
 
@@ -74,12 +75,12 @@ namespace bhPlatform
     bool needsPostfix = !bhUtil::EndsWith(path, BH_DIR_SEPARATOR);
     size_t len = strlen(path) + (needsPostfix ? strlen(BH_DIR_SEPARATOR) : 0) + 1;
     char* newDataDir = new char[len];
-    sprintf_s(newDataDir, len, "%s%s", path, needsPostfix ? BH_DIR_SEPARATOR : "");
+    snprintf(newDataDir, len, "%s%s", path, needsPostfix ? BH_DIR_SEPARATOR : "");
     if (CheckDirectoryExists(newDataDir))
     {
       delete[] g_dataDir;
       g_dataDir = new char[len];
-      strncpy_s(g_dataDir, len, newDataDir, len);
+      strncpy(g_dataDir, newDataDir, len);
       delete[] newDataDir;
       return true;
     }
@@ -93,7 +94,7 @@ namespace bhPlatform
     {
       size_t len = strlen(GetExecutableDir()) + strlen(DATA_DIR_NAME) + strlen(BH_DIR_SEPARATOR) + 1;
       g_dataDir = new char[len];
-      sprintf_s(g_dataDir, len, "%s%s%s", GetExecutableDir(), DATA_DIR_NAME, BH_DIR_SEPARATOR);
+      snprintf(g_dataDir, len, "%s%s%s", GetExecutableDir(), DATA_DIR_NAME, BH_DIR_SEPARATOR);
     }
     return g_dataDir;
   }
@@ -109,7 +110,7 @@ namespace bhPlatform
       {
         size_t len = strlen(GetDataDir()) + strlen(GetResourceTypeStr(rt)) + strlen(BH_DIR_SEPARATOR) + 1;
         g_resourceDirs[intRT] = new char[len];
-        sprintf_s(g_resourceDirs[intRT], len, "%s%s%s", GetDataDir(), GetResourceTypeStr(rt), BH_DIR_SEPARATOR);
+        snprintf(g_resourceDirs[intRT], len, "%s%s%s", GetDataDir(), GetResourceTypeStr(rt), BH_DIR_SEPARATOR);
       }
       return g_resourceDirs[intRT];
     }
@@ -121,7 +122,7 @@ namespace bhPlatform
     const char* resourceDir = GetResourceDir(rt);
     size_t len = strlen(resourceDir) + strlen(fileName) + 1;
     char* newPath = new char[len];
-    sprintf_s(newPath, len, "%s%s", resourceDir, fileName);
+    snprintf(newPath, len, "%s%s", resourceDir, fileName);
     return newPath;
   }
 
@@ -140,7 +141,7 @@ namespace bhPlatform
     const char* dir = GetResourceTypeStr(rt);
     size_t pathLen = strlen(dir) + strlen(fileName) + 2; // + path delim + null-terminate
     char* path = new char[pathLen];
-    sprintf_s(path, pathLen, "%s%s%s", dir, BH_DIR_SEPARATOR, fileName);
+    snprintf(path, pathLen, "%s%s%s", dir, BH_DIR_SEPARATOR, fileName);
     return path;
   }
 }

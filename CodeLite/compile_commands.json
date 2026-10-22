@@ -1,0 +1,61 @@
+[{
+		"file":	"/home/nicholas/Projects/Beholder/src/bhConfig.cpp",
+		"directory":	"/home/nicholas/Projects/Beholder/CodeLite/Beholder2D",
+		"command":	"/bin/clang++ -c /home/nicholas/Projects/Beholder/src/bhConfig.cpp -o /home/nicholas/Projects/Beholder/src/bhConfig.cpp.o -target x86_64-pc-linux-gnu -I/include/c++/13 -I/include/x86_64-linux-gnu/c++/13 -I/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include -I. -I/home/nicholas/lib/SDL/include -I/home/nicholas/lib/volk -I/home/nicholas/lib/VulkanMemoryAllocator/include -I/home/nicholas/lib/VulkanSDK/1.4.350.1/x86_64/include -I../../include  -gdwarf-2  -fstandalone-debug  -O0  -Wall"
+	}, {
+		"file":	"/home/nicholas/Projects/Beholder/src/bhPlatform.cpp",
+		"directory":	"/home/nicholas/Projects/Beholder/CodeLite/Beholder2D",
+		"command":	"/bin/clang++ -c /home/nicholas/Projects/Beholder/src/bhPlatform.cpp -o /home/nicholas/Projects/Beholder/src/bhPlatform.cpp.o -target x86_64-pc-linux-gnu -I/include/c++/13 -I/include/x86_64-linux-gnu/c++/13 -I/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include -I. -I/home/nicholas/lib/SDL/include -I/home/nicholas/lib/volk -I/home/nicholas/lib/VulkanMemoryAllocator/include -I/home/nicholas/lib/VulkanSDK/1.4.350.1/x86_64/include -I../../include  -gdwarf-2  -fstandalone-debug  -O0  -Wall"
+	}, {
+		"file":	"/home/nicholas/Projects/Beholder/src/bhMain2D.cpp",
+		"directory":	"/home/nicholas/Projects/Beholder/CodeLite/Beholder2D",
+		"command":	"/bin/clang++ -c /home/nicholas/Projects/Beholder/src/bhMain2D.cpp -o /home/nicholas/Projects/Beholder/src/bhMain2D.cpp.o -target x86_64-pc-linux-gnu -I/include/c++/13 -I/include/x86_64-linux-gnu/c++/13 -I/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include -I. -I/home/nicholas/lib/SDL/include -I/home/nicholas/lib/volk -I/home/nicholas/lib/VulkanMemoryAllocator/include -I/home/nicholas/lib/VulkanSDK/1.4.350.1/x86_64/include -I../../include  -gdwarf-2  -fstandalone-debug  -O0  -Wall"
+	}, {
+		"file":	"/home/nicholas/Projects/Beholder/src/bhUtil.cpp",
+		"directory":	"/home/nicholas/Projects/Beholder/CodeLite/Beholder2D",
+		"command":	"/bin/clang++ -c /home/nicholas/Projects/Beholder/src/bhUtil.cpp -o /home/nicholas/Projects/Beholder/src/bhUtil.cpp.o -target x86_64-pc-linux-gnu -I/include/c++/13 -I/include/x86_64-linux-gnu/c++/13 -I/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include -I. -I/home/nicholas/lib/SDL/include -I/home/nicholas/lib/volk -I/home/nicholas/lib/VulkanMemoryAllocator/include -I/home/nicholas/lib/VulkanSDK/1.4.350.1/x86_64/include -I../../include  -gdwarf-2  -fstandalone-debug  -O0  -Wall"
+	}, {
+		"file":	"/home/nicholas/Projects/Beholder/src/bhLog.cpp",
+		"directory":	"/home/nicholas/Projects/Beholder/CodeLite/Beholder2D",
+		"command":	"/bin/clang++ -c /home/nicholas/Projects/Beholder/src/bhLog.cpp -o /home/nicholas/Projects/Beholder/src/bhLog.cpp.o -target x86_64-pc-linux-gnu -I/include/c++/13 -I/include/x86_64-linux-gnu/c++/13 -I/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include -I. -I/home/nicholas/lib/SDL/include -I/home/nicholas/lib/volk -I/home/nicholas/lib/VulkanMemoryAllocator/include -I/home/nicholas/lib/VulkanSDK/1.4.350.1/x86_64/include -I../../include  -gdwarf-2  -fstandalone-debug  -O0  -Wall"
+	}, {
+		"file":	"/home/nicholas/Projects/Beholder/src/bhMain3D.cpp",
+		"directory":	"/home/nicholas/Projects/Beholder/CodeLite/Beholder3D",
+		"command":	"/bin/clang++ -c /home/nicholas/Projects/Beholder/src/bhMain3D.cpp -o /home/nicholas/Projects/Beholder/src/bhMain3D.cpp.o -target x86_64-pc-linux-gnu -I/include/c++/13 -I/include/x86_64-linux-gnu/c++/13 -I/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include -I. -I/home/nicholas/lib/glm -I/home/nicholas/lib/imgui -I/home/nicholas/lib/SDL/include -I/home/nicholas/lib/volk -I/home/nicholas/lib/VulkanMemoryAllocator/include -I/home/nicholas/lib/VulkanSDK/1.4.350.1/x86_64/include -I../../include  -gdwarf-2  -fstandalone-debug  -O0  -Wall"
+	}, {
+		"file":	"/home/nicholas/Projects/Beholder/src/bhPlatform.cpp",
+		"directory":	"/home/nicholas/Projects/Beholder/CodeLite/Beholder3D",
+		"command":	"/bin/clang++ -c /home/nicholas/Projects/Beholder/src/bhPlatform.cpp -o /home/nicholas/Projects/Beholder/src/bhPlatform.cpp.o -target x86_64-pc-linux-gnu -I/include/c++/13 -I/include/x86_64-linux-gnu/c++/13 -I/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include -I. -I/home/nicholas/lib/glm -I/home/nicholas/lib/imgui -I/home/nicholas/lib/SDL/include -I/home/nicholas/lib/volk -I/home/nicholas/lib/VulkanMemoryAllocator/include -I/home/nicholas/lib/VulkanSDK/1.4.350.1/x86_64/include -I../../include  -gdwarf-2  -fstandalone-debug  -O0  -Wall"
+	}, {
+		"file":	"/home/nicholas/Projects/Beholder/src/bhUtil.cpp",
+		"directory":	"/home/nicholas/Projects/Beholder/CodeLite/Beholder3D",
+		"command":	"/bin/clang++ -c /home/nicholas/Projects/Beholder/src/bhUtil.cpp -o /home/nicholas/Projects/Beholder/src/bhUtil.cpp.o -target x86_64-pc-linux-gnu -I/include/c++/13 -I/include/x86_64-linux-gnu/c++/13 -I/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include -I. -I/home/nicholas/lib/glm -I/home/nicholas/lib/imgui -I/home/nicholas/lib/SDL/include -I/home/nicholas/lib/volk -I/home/nicholas/lib/VulkanMemoryAllocator/include -I/home/nicholas/lib/VulkanSDK/1.4.350.1/x86_64/include -I../../include  -gdwarf-2  -fstandalone-debug  -O0  -Wall"
+	}, {
+		"file":	"/home/nicholas/Projects/Beholder/src/bhVk.cpp",
+		"directory":	"/home/nicholas/Projects/Beholder/CodeLite/Beholder3D",
+		"command":	"/bin/clang++ -c /home/nicholas/Projects/Beholder/src/bhVk.cpp -o /home/nicholas/Projects/Beholder/src/bhVk.cpp.o -target x86_64-pc-linux-gnu -I/include/c++/13 -I/include/x86_64-linux-gnu/c++/13 -I/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include -I. -I/home/nicholas/lib/glm -I/home/nicholas/lib/imgui -I/home/nicholas/lib/SDL/include -I/home/nicholas/lib/volk -I/home/nicholas/lib/VulkanMemoryAllocator/include -I/home/nicholas/lib/VulkanSDK/1.4.350.1/x86_64/include -I../../include  -gdwarf-2  -fstandalone-debug  -O0  -Wall"
+	}, {
+		"file":	"/home/nicholas/Projects/Beholder/src/bhLog.cpp",
+		"directory":	"/home/nicholas/Projects/Beholder/CodeLite/Beholder3D",
+		"command":	"/bin/clang++ -c /home/nicholas/Projects/Beholder/src/bhLog.cpp -o /home/nicholas/Projects/Beholder/src/bhLog.cpp.o -target x86_64-pc-linux-gnu -I/include/c++/13 -I/include/x86_64-linux-gnu/c++/13 -I/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include -I. -I/home/nicholas/lib/glm -I/home/nicholas/lib/imgui -I/home/nicholas/lib/SDL/include -I/home/nicholas/lib/volk -I/home/nicholas/lib/VulkanMemoryAllocator/include -I/home/nicholas/lib/VulkanSDK/1.4.350.1/x86_64/include -I../../include  -gdwarf-2  -fstandalone-debug  -O0  -Wall"
+	}, {
+		"file":	"/home/nicholas/Projects/Beholder/src/bhVkPipeline.cpp",
+		"directory":	"/home/nicholas/Projects/Beholder/CodeLite/Beholder3D",
+		"command":	"/bin/clang++ -c /home/nicholas/Projects/Beholder/src/bhVkPipeline.cpp -o /home/nicholas/Projects/Beholder/src/bhVkPipeline.cpp.o -target x86_64-pc-linux-gnu -I/include/c++/13 -I/include/x86_64-linux-gnu/c++/13 -I/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include -I. -I/home/nicholas/lib/glm -I/home/nicholas/lib/imgui -I/home/nicholas/lib/SDL/include -I/home/nicholas/lib/volk -I/home/nicholas/lib/VulkanMemoryAllocator/include -I/home/nicholas/lib/VulkanSDK/1.4.350.1/x86_64/include -I../../include  -gdwarf-2  -fstandalone-debug  -O0  -Wall"
+	}, {
+		"file":	"/home/nicholas/Projects/Beholder/src/bhVMAImpl.cpp",
+		"directory":	"/home/nicholas/Projects/Beholder/CodeLite/Beholder3D",
+		"command":	"/bin/clang++ -c /home/nicholas/Projects/Beholder/src/bhVMAImpl.cpp -o /home/nicholas/Projects/Beholder/src/bhVMAImpl.cpp.o -target x86_64-pc-linux-gnu -I/include/c++/13 -I/include/x86_64-linux-gnu/c++/13 -I/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include -I. -I/home/nicholas/lib/glm -I/home/nicholas/lib/imgui -I/home/nicholas/lib/SDL/include -I/home/nicholas/lib/volk -I/home/nicholas/lib/VulkanMemoryAllocator/include -I/home/nicholas/lib/VulkanSDK/1.4.350.1/x86_64/include -I../../include  -gdwarf-2  -fstandalone-debug  -O0  -Wall"
+	}, {
+		"file":	"/home/nicholas/Projects/Beholder/src/bhVolkImpl.cpp",
+		"directory":	"/home/nicholas/Projects/Beholder/CodeLite/Beholder3D",
+		"command":	"/bin/clang++ -c /home/nicholas/Projects/Beholder/src/bhVolkImpl.cpp -o /home/nicholas/Projects/Beholder/src/bhVolkImpl.cpp.o -target x86_64-pc-linux-gnu -I/include/c++/13 -I/include/x86_64-linux-gnu/c++/13 -I/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include -I. -I/home/nicholas/lib/glm -I/home/nicholas/lib/imgui -I/home/nicholas/lib/SDL/include -I/home/nicholas/lib/volk -I/home/nicholas/lib/VulkanMemoryAllocator/include -I/home/nicholas/lib/VulkanSDK/1.4.350.1/x86_64/include -I../../include  -gdwarf-2  -fstandalone-debug  -O0  -Wall"
+	}, {
+		"file":	"/home/nicholas/Projects/Beholder/src/bhConfig.cpp",
+		"directory":	"/home/nicholas/Projects/Beholder/CodeLite/Beholder3D",
+		"command":	"/bin/clang++ -c /home/nicholas/Projects/Beholder/src/bhConfig.cpp -o /home/nicholas/Projects/Beholder/src/bhConfig.cpp.o -target x86_64-pc-linux-gnu -I/include/c++/13 -I/include/x86_64-linux-gnu/c++/13 -I/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include -I. -I/home/nicholas/lib/glm -I/home/nicholas/lib/imgui -I/home/nicholas/lib/SDL/include -I/home/nicholas/lib/volk -I/home/nicholas/lib/VulkanMemoryAllocator/include -I/home/nicholas/lib/VulkanSDK/1.4.350.1/x86_64/include -I../../include  -gdwarf-2  -fstandalone-debug  -O0  -Wall"
+	}, {
+		"file":	"/home/nicholas/Projects/Beholder/include/bhCamera.hpp",
+		"directory":	"/home/nicholas/Projects/Beholder/CodeLite/Beholder3D",
+		"command":	"/bin/clang++ -c /home/nicholas/Projects/Beholder/include/bhCamera.hpp -o /home/nicholas/Projects/Beholder/include/bhCamera.hpp.o -target x86_64-pc-linux-gnu -I/include/c++/13 -I/include/x86_64-linux-gnu/c++/13 -I/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include -I. -I/home/nicholas/lib/glm -I/home/nicholas/lib/imgui -I/home/nicholas/lib/SDL/include -I/home/nicholas/lib/volk -I/home/nicholas/lib/VulkanMemoryAllocator/include -I/home/nicholas/lib/VulkanSDK/1.4.350.1/x86_64/include -I../../include  -gdwarf-2  -fstandalone-debug  -O0  -Wall"
+	}]

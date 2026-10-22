@@ -44,8 +44,8 @@ struct bhConfig
 	AudioSettings audio;
 	InputSettings input;
 
-	static int Load(const char* path, bhConfig& cfg);
-	static int Save(const char* path, const bhConfig& cfg);
+	static size_t Load(const char* path, bhConfig& cfg);
+	static size_t Save(const char* path, const bhConfig& cfg);
 	static SDL_PropertiesID CreateProperties(const bhConfig& config);
 	static void DestroyProperties(SDL_PropertiesID props);
 };

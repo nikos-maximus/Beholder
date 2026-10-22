@@ -14,7 +14,7 @@ namespace bhLog
 
     va_list args;
     va_start(args, format);
-    vsprintf_s(g_logString, BH_LOG_MESSAGE_SIZ, format, args);
+    vsnprintf(g_logString, BH_LOG_MESSAGE_SIZ, format, args);
     va_end(args);
     SDL_LogMessage(static_cast<SDL_LogCategory>(c), static_cast<SDL_LogPriority>(p), g_logString);
   }

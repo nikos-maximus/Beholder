@@ -26,11 +26,10 @@
 
 namespace bhVk
 {
-	extern VkFormat g_presentImageFormat, g_depthStencilFormat;
 	static constexpr uint32_t NUM_TEXTURE_SAMPLERS{ 2 };
 
 	////////////////////////////////////////////////////////////////////////////////
-	PipelineLayout CreatePipelineLayout(RenderDevice* rd)
+	PipelineLayout CreatePipelineLayout(const RenderDevice* renderDev)
 	{
 		VkDescriptorBindingFlags descBindFlags{ VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT };
 
@@ -43,12 +42,12 @@ namespace bhVk
 
 		VkDescriptorSetLayoutCreateInfo descLayoutTexCI{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
 		{
-			descLayoutTexCI.pNext = &descBindFlags;
+			descLayoutTexCI.flags = descBindFlags;
 			descLayoutTexCI.bindingCount = 1;
 			descLayoutTexCI.pBindings = &descLayoutBindingTex;
 		}
-		VkDescriptorSetLayout dsl = rd->CreateDescriptorSetLayout(descLayoutTexCI);
-		if (!dsl)
+		VkDescriptorSetLayout descSetLayout = renderDev->CreateDescriptorSetLayout(descLayoutTexCI);
+		if (!descSetLayout)
 		{
 			return {};
 		}
@@ -62,33 +61,34 @@ namespace bhVk
 		VkPipelineLayoutCreateInfo layoutCI{ VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO };
 		{
 			layoutCI.setLayoutCount = 1;
-			layoutCI.pSetLayouts = &dsl;
+			layoutCI.pSetLayouts = &descSetLayout;
 			layoutCI.pushConstantRangeCount = 1;
 			layoutCI.pPushConstantRanges = &pushConstRange;
 		}
-		VkPipelineLayout pl = rd->CreatePipelineLayout(layoutCI);
-		if (!pl)
+		VkPipelineLayout plLayout = renderDev->CreatePipelineLayout(layoutCI);
+		if (!plLayout)
 		{
 			return {};
 		}
-		return { dsl, pl };
+		return { descSetLayout, plLayout };
 	}
 
-	void DestroyPipelineLayout(RenderDevice* rd, PipelineLayout& pl)
+	void DestroyPipelineLayout(const RenderDevice* renderDev, PipelineLayout& plLayout)
 	{
-		rd->DestroyPipelineLayout(pl.pl);
-		rd->DestroyDescriptorSetLayout(pl.dsl);
+		renderDev->DestroyPipelineLayout(plLayout.plLayout);
+		renderDev->DestroyDescriptorSetLayout(plLayout.descSetLayout);
 	}
 
 	////////////////////////////////////////////////////////////////////////////////
-	bool GraphicsPipeline::Create(RenderDevice* rd)
+	bool GraphicsPipeline::Create(const RenderDevice* rd, const PipelineLayout& plLayout)
 	{
 		////////////////////////////////////////////////////////////////////////////////
 		//Rendering
 		VkPipelineRenderingCreateInfo renderingCI{ VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO };
 		{
+			const VkFormat presentImageFormats[] = { g_presentImageFormat };
 			renderingCI.colorAttachmentCount = 1;
-			renderingCI.pColorAttachmentFormats = &g_presentImageFormat;
+			renderingCI.pColorAttachmentFormats = presentImageFormats;
 			renderingCI.depthAttachmentFormat = g_depthStencilFormat;
 		}
 
@@ -97,7 +97,7 @@ namespace bhVk
 		VkShaderModule shader01 = rd->CreateShaderModule(bhPlatform::CreateResourcePath(bhPlatform::ResourceType::RT_SHADER, "Shader01.out"));
 		if (!shader01) return false;
 
-		VkPipelineShaderStageCreateInfo shaderStageCI[2]{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
+		VkPipelineShaderStageCreateInfo shaderStageCI[2]{ { VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO } };
 		{
 			shaderStageCI[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
 			shaderStageCI[0].module = shader01;
@@ -129,19 +129,19 @@ namespace bhVk
 			vertexAttribs[1].location = 1;
 			vertexAttribs[1].binding = 0;
 			vertexAttribs[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-			vertexAttribs[1].offset = offsetof(bhMesh::Vertex, bhMesh::Vertex::normal);
+			vertexAttribs[1].offset = offsetof(bhMesh::Vertex, normal);
 
 			//Tangent
 			vertexAttribs[2].location = 2;
 			vertexAttribs[2].binding = 0;
 			vertexAttribs[2].format = VK_FORMAT_R32G32B32_SFLOAT;
-			vertexAttribs[2].offset = offsetof(bhMesh::Vertex, bhMesh::Vertex::tangent);
+			vertexAttribs[2].offset = offsetof(bhMesh::Vertex, tangent);
 
 			//UV0
 			vertexAttribs[3].location = 3;
 			vertexAttribs[3].binding = 0;
 			vertexAttribs[3].format = VK_FORMAT_R32G32_SFLOAT;
-			vertexAttribs[3].offset = offsetof(bhMesh::Vertex, bhMesh::Vertex::uv0);
+			vertexAttribs[3].offset = offsetof(bhMesh::Vertex, uv0);
 		}
 
 		VkPipelineVertexInputStateCreateInfo vertexInputStateCI{ VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
@@ -230,7 +230,7 @@ namespace bhVk
 			graphicsPipelineCI.pDepthStencilState = &depthStencilStateCI;
 			graphicsPipelineCI.pColorBlendState = &colorBlendStateCI;
 			graphicsPipelineCI.pDynamicState = &dynamicStateCI;
-			graphicsPipelineCI.layout = pl.pl;
+			graphicsPipelineCI.layout = plLayout.plLayout;
 			//gpCI.renderPass = ;
 			//gpCI.subpass = ;
 			//gpCI.basePipelineHandle = ;
@@ -239,7 +239,7 @@ namespace bhVk
 		return rd->CreatePipeline(graphicsPipelineCI);
 	}
 
-	void GraphicsPipeline::Destroy(RenderDevice* rd)
+	void GraphicsPipeline::Destroy(const RenderDevice* rd)
 	{
 		rd->DestroyPipeline(pipeline);
 		pipeline = VK_NULL_HANDLE;
@@ -252,6 +252,6 @@ namespace bhVk
 
 	void GraphicsPipeline::BindDescriptorSet(const VkCommandBuffer& cb, const VkDescriptorSet& ds) const
 	{
-		vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pl.pl, 0, 1, &ds, 0, nullptr);
+		vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, plLayout.plLayout, 0, 1, &ds, 0, nullptr);
 	}
 }

@@ -13,7 +13,7 @@ namespace bhUtil
 
   struct FileData
   {
-    __forceinline bool IsValid() { return (data != nullptr) && (length > 0); }
+    inline bool IsValid() { return (data != nullptr) && (length > 0); }
     void* data{ nullptr };
     long length{ 0 };
   };
