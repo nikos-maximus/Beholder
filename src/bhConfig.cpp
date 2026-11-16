@@ -4,7 +4,7 @@
 
 size_t bhConfig::Load(const char* path, bhConfig& cfg)
 {
-  size_t result{ 0 };
+  size_t result { 0 };
   FILE* file = fopen(path, "rb");
   if (file)
   {
@@ -17,7 +17,7 @@ size_t bhConfig::Load(const char* path, bhConfig& cfg)
 
 size_t bhConfig::Save(const char* path, const bhConfig& cfg)
 {
-  size_t result{ 0 };
+  size_t result { 0 };
   FILE* file = fopen(path, "wb");
   if (file)
   {
@@ -44,6 +44,8 @@ SDL_PropertiesID bhConfig::CreateProperties(const bhConfig& config)
     SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, SDL_WINDOWPOS_CENTERED);
 
     SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_VULKAN_BOOLEAN, true);
+    
+    SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, config.window.title);
   }
   return props;
 }

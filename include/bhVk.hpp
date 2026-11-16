@@ -7,6 +7,7 @@
 class bhMesh;
 
 struct SDL_Window;
+union SDL_Event;
 
 namespace bhVk
 {
@@ -74,6 +75,12 @@ namespace bhVk
     void Destroy();
     void BeginFrame(const GraphicsPipeline& gpl, const bhCamera* cam);
     void EndFrame();
+    
+    bool InitImGui(SDL_Window* window);
+    void DestroyImGui();
+    void BeginImGuiFrame();
+    void EndImGuiFrame();
+    void ProcessImGuiEvent(SDL_Event* evt);
 
     bool CreateMeshBuffer(bhMesh* mesh);
     void DestroyMeshBuffer(bhMesh* mesh);
@@ -97,13 +104,8 @@ namespace bhVk
     ~RenderDevice() = default;
 
   private:
-    // bool InitImGui(SDL_Window* window);
-    // void DestroyImGui();
-    // void BeginImGuiFrame();
-    // void EndImGuiFrame();
-
+    ////////////////////////////////////////////////////////////////////////////////
     bool SetupDescriptors(const VkDescriptorSetLayout& dsl);
-    
 
     //const VkInstance& instance;
     const PhysicalDevice phDevice;

@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Project Name="Beholder2D" Version="11000" InternalType="Console">
+  <VirtualDirectory Name="include">
+    <File Name="../../include/bhAppState.hpp"/>
+  </VirtualDirectory>
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
@@ -24,9 +27,7 @@
     <Configuration Name="Debug" CompilerType="/bin/clang" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-gdwarf-2;-fstandalone-debug;-O0;-Wall" C_Options="-gdwarf-2;-fstandalone-debug;-O0;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="1">
         <IncludePath Value="$(HOME)/lib/SDL/include"/>
-        <IncludePath Value="$(HOME)/lib/volk"/>
-        <IncludePath Value="$(HOME)/lib/VulkanMemoryAllocator/include"/>
-        <IncludePath Value="$(HOME)/lib/VulkanSDK/1.4.350.1/x86_64/include"/>
+        <IncludePath Value="$(HOME)/lib/imgui"/>
         <IncludePath Value="../../include"/>
       </Compiler>
       <Linker Options="" Required="yes">

@@ -1,5 +1,4 @@
 #include <vector>
-#include <iostream> //DEBUG
 #include <SDL3/SDL_assert.h>
 #include <SDL3/SDL_vulkan.h>
 
@@ -52,8 +51,6 @@ namespace bhVk
 	////////////////////////////////////////////////////////////////////////////////
 	static constexpr uint8_t BH_IMGUI_FLAG_READY = BH_BIT(0);
 	static constexpr uint8_t BH_IMGUI_FLAG_VISIBLE = BH_BIT(1);
-
-	static uint8_t g_imguiFlags = 0;
 
 	static std::vector<VkDescriptorImageInfo> g_textureDescriptors;
 
@@ -152,10 +149,11 @@ namespace bhVk
 			std::vector<VkExtensionProperties> extensionProps(numExtensions);
 			if (Chk(vkEnumerateInstanceExtensionProperties(layer, &numExtensions, extensionProps.data())))
 			{
-				std::cout << "Instance Extensions - Layer : " << (layer ? layer : "no layer") << std::endl;
+        bhLog::Message(bhLog::LOG_CATEGORY_GPU, bhLog::LOG_PRIORITY_INFO, 
+          "Vulkan call returned %d", "Instance Extensions - Layer : %s", layer ? layer : "no layer");
 				for (const auto& ep : extensionProps)
 				{
-					std::cout << ep.extensionName << std::endl;
+          bhLog::Message(bhLog::LOG_CATEGORY_GPU, bhLog::LOG_PRIORITY_INFO, ep.extensionName);
 				}
 			}
 		}
@@ -307,19 +305,6 @@ namespace bhVk
 		volkFinalize();
 	}
 
-	void ShowImGui(bool show)
-	{
-		if (show)
-		{
-			g_imguiFlags |= BH_IMGUI_FLAG_VISIBLE;
-		}
-		else
-		{
-			g_imguiFlags &= ~BH_IMGUI_FLAG_VISIBLE;
-		}
-	}
-
-	////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////
 	RenderDevice::RenderDevice(const PhysicalDevice& _phDevice, const VkDevice _device, const VkInstance& _instance)
     : phDevice(_phDevice)
@@ -520,7 +505,6 @@ namespace bhVk
 			if (!result) break;
 		}
 
-    imgIdx = 0;
 		return result;
 	}
 
@@ -758,77 +742,79 @@ namespace bhVk
 		//++frameCount;
 	}
 
-	// bool RenderDevice::InitImGui(SDL_Window* window)
-	// {
-	// 	IMGUI_CHECKVERSION();
-	// 	ImGui::CreateContext();
-	// 	ImGuiIO& io = ImGui::GetIO();
-	// 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-	// 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+  ////////////////////////////////////////////////////////////////////////////////
+	bool RenderDevice::InitImGui(SDL_Window* window)
+	{
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO();
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
 
-	// 	if (ImGui_ImplSDL3_InitForVulkan(window))
-	// 	{
-	// 		// ImGui_ImplVulkan_PipelineInfo pipelineInfo = {};
-	// 		// {
-	// 		// 	pipelineInfo.PipelineRenderingCreateInfo = ; //Setup if using dynamic rendering
-	// 		// }
+		if (ImGui_ImplSDL3_InitForVulkan(window))
+		{
+			ImGui_ImplVulkan_PipelineInfo pipelineInfoMain = {};
+      {
+        pipelineInfoMain.PipelineRenderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR;
+      }
 
-	// 		ImGui_ImplVulkan_InitInfo vii = {};
-	// 		{
-	// 			vii.ApiVersion = BH_VK_API_VERSION;
-	// 			vii.Instance = g_instance;
-	// 			vii.PhysicalDevice = phDevice.device;
-	// 			vii.Device = device;
-	// 			vii.QueueFamily = phDevice.preferredQueueFamily;
-	// 			vii.Queue = renderQueue;
-	// 			//vii.DescriptorPool = ;
-	// 			vii.DescriptorPoolSize = 1;
-	// 			vii.MinImageCount = BH_NUM_FRAMES_IN_FLIGHT;
-	// 			vii.ImageCount = BH_NUM_FRAMES_IN_FLIGHT;
-	// 			vii.PipelineInfoMain = pipelineInfo;
-	// 			//vii.UseDynamicRendering = VK_TRUE; //See also pipelineInfo
+			ImGui_ImplVulkan_InitInfo vii = {};
+			{
+				vii.ApiVersion = BH_VK_API_VERSION;
+				vii.Instance = g_instance;
+				vii.PhysicalDevice = phDevice.device;
+				vii.Device = device;
+				vii.QueueFamily = phDevice.preferredQueueFamily;
+				vii.Queue = renderQueue;
+				//vii.DescriptorPool = ;
+				vii.DescriptorPoolSize = IMGUI_IMPL_VULKAN_MINIMUM_SAMPLED_IMAGE_POOL_SIZE;
+				vii.MinImageCount = BH_NUM_FRAMES_IN_FLIGHT;
+				vii.ImageCount = BH_NUM_FRAMES_IN_FLIGHT;
+				vii.PipelineInfoMain = pipelineInfoMain;
+				vii.UseDynamicRendering = true; //See also pipelineInfoMain
 
-	// 			//TODO: More optional fields to set up
-	// 		}
+				//TODO: More optional fields to set up
+			}
 
-	// 		if (ImGui_ImplVulkan_Init(&vii))
-	// 		{
-	// 			ImGui::StyleColorsDark();
-	// 			g_imguiFlags = BH_IMGUI_FLAG_READY;
-	// 			return true;
-	// 		}
-	// 	}
-	// 	return false;
-	// }
+			if (ImGui_ImplVulkan_Init(&vii))
+			{
+				ImGui::StyleColorsDark();
+				return true;
+			}
+		}
+		return false;
+	}
 
-	// void RenderDevice::DestroyImGui()
-	// {
-	// 	g_imguiFlags = 0;
-	// 	ImGui_ImplVulkan_Shutdown();
-	// 	ImGui_ImplSDL3_Shutdown();
-	// 	ImGui::DestroyContext();
-	// }
+	void RenderDevice::DestroyImGui()
+	{
+		ImGui_ImplVulkan_Shutdown();
+		ImGui_ImplSDL3_Shutdown();
+		ImGui::DestroyContext();
+	}
 
-	// void RenderDevice::BeginImGuiFrame()
-	// {
-	// 	if (g_imguiFlags == (BH_IMGUI_FLAG_READY | BH_IMGUI_FLAG_VISIBLE))
-	// 	{
-	// 		ImGui_ImplSDL3_NewFrame();
-	// 		ImGui_ImplVulkan_NewFrame();
-	// 		ImGui::NewFrame();
+	void RenderDevice::BeginImGuiFrame()
+	{
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
+    ImGui::NewFrame();
 
-	// 		// DEBUG
-	// 		bool showdemo = true;
-	// 		ImGui::ShowDemoWindow(&showdemo);
-	// 	}
-	// }
+    // DEBUG
+    bool showdemo = true;
+    ImGui::ShowDemoWindow(&showdemo);
+	}
 
-	// void RenderDevice::EndImGuiFrame()
-	// {
-	// 	ImGui::Render();
-	// 	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmdBuffers[imgIdx]);
-	// }
+	void RenderDevice::EndImGuiFrame()
+	{
+		ImGui::Render();
+		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmdBuffers[frameIdx]);
+	}
+  
+  void RenderDevice::ProcessImGuiEvent(SDL_Event* evt)
+  {
+    ImGui_ImplSDL3_ProcessEvent(evt);
+  }
 
+  ////////////////////////////////////////////////////////////////////////////////
 	bool RenderDevice::CreateMeshBuffer(bhMesh* mesh)
 	{
 		VkBufferCreateInfo bci{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };

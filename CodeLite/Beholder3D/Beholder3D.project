@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Project Name="Beholder3D" Version="11000" InternalType="Console">
   <VirtualDirectory Name="include">
+    <File Name="../../include/bhDefines.hpp"/>
+    <File Name="../../include/bhAppState.hpp"/>
+    <VirtualDirectory Name="thirdparty">
+      <File Name="../../../../lib/imgui/imgui.h"/>
+      <File Name="../../../../lib/imgui/backends/imgui_impl_vulkan.h"/>
+      <File Name="../../../../lib/imgui/backends/imgui_impl_sdl3.h"/>
+    </VirtualDirectory>
     <File Name="../../include/bhVkPipeline.hpp"/>
     <File Name="../../include/bhVk.hpp"/>
     <File Name="../../include/bhUtil.hpp"/>
@@ -12,6 +19,15 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
+    <VirtualDirectory Name="thirdparty">
+      <File Name="../../../../lib/imgui/imgui_demo.cpp"/>
+      <File Name="../../../../lib/imgui/imgui_tables.cpp"/>
+      <File Name="../../../../lib/imgui/imgui_widgets.cpp"/>
+      <File Name="../../../../lib/imgui/imgui_draw.cpp"/>
+      <File Name="../../../../lib/imgui/imgui.cpp"/>
+      <File Name="../../../../lib/imgui/backends/imgui_impl_vulkan.cpp"/>
+      <File Name="../../../../lib/imgui/backends/imgui_impl_sdl3.cpp"/>
+    </VirtualDirectory>
     <File Name="../../src/bhCamera.cpp"/>
     <File Name="../../src/bhConfig.cpp"/>
     <File Name="../../src/bhVolkImpl.cpp"/>
@@ -37,13 +53,14 @@
     </GlobalSettings>
     <Configuration Name="Debug" CompilerType="/bin/clang" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-gdwarf-2;-fstandalone-debug;-O0;-Wall" C_Options="-gdwarf-2;-fstandalone-debug;-O0;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="1">
-        <IncludePath Value="$(HOME)/lib/glm"/>
-        <IncludePath Value="$(HOME)/lib/imgui"/>
         <IncludePath Value="$(HOME)/lib/SDL/include"/>
-        <IncludePath Value="$(HOME)/lib/volk"/>
-        <IncludePath Value="$(HOME)/lib/VulkanMemoryAllocator/include"/>
-        <IncludePath Value="$(HOME)/lib/VulkanSDK/1.4.350.1/x86_64/include"/>
+        <IncludePath Value="$(HOME)/lib/VulkanSDK/1.4.363.0/x86_64/include"/>
+        <IncludePath Value="$(HOME)/lib/VulkanSDK/1.4.363.0/x86_64/include/volk"/>
+        <IncludePath Value="$(HOME)/lib/VulkanSDK/1.4.363.0/x86_64/include/vma"/>
+        <IncludePath Value="$(HOME)/lib/imgui"/>
+        <IncludePath Value="$(HOME)/lib/glm"/>
         <IncludePath Value="../../include"/>
+        <Preprocessor Value="IMGUI_IMPL_VULKAN_USE_VOLK=1"/>
       </Compiler>
       <Linker Options="" Required="yes">
         <Library Value="SDL3"/>
@@ -84,10 +101,18 @@
     </Configuration>
     <Configuration Name="Release" CompilerType="/bin/clang" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-O2;-Wall" C_Options="-O2;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="1">
-        <IncludePath Value="."/>
+        <IncludePath Value="$(HOME)/lib/SDL/include"/>
+        <IncludePath Value="$(HOME)/lib/VulkanSDK/1.4.363.0/x86_64/include"/>
+        <IncludePath Value="$(HOME)/lib/VulkanSDK/1.4.363.0/x86_64/include/volk"/>
+        <IncludePath Value="$(HOME)/lib/VulkanSDK/1.4.363.0/x86_64/include/vma"/>
+        <IncludePath Value="$(HOME)/lib/imgui"/>
+        <IncludePath Value="$(HOME)/lib/glm"/>
+        <IncludePath Value="../../include"/>
         <Preprocessor Value="NDEBUG"/>
       </Compiler>
-      <Linker Options="" Required="yes"/>
+      <Linker Options="" Required="yes">
+        <Library Value="SDL3"/>
+      </Linker>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="$(ProjectName)" IntermediateDirectory="" Command="$(WorkspacePath)/build-$(WorkspaceConfiguration)/bin/$(OutputFile)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(WorkspacePath)/build-$(WorkspaceConfiguration)/lib" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="CodeLite Makefile Generator"/>

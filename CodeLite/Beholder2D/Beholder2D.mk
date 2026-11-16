@@ -5,7 +5,7 @@
 ## Debug
 ProjectName            :=Beholder2D
 ConfigurationName      :=Debug
-WorkspaceConfiguration :=Debug
+WorkspaceConfiguration :=Release
 WorkspacePath          :=/home/nicholas/Projects/Beholder/CodeLite
 ProjectPath            :=/home/nicholas/Projects/Beholder/CodeLite/Beholder2D
 IntermediateDirectory  :=../build-$(WorkspaceConfiguration)/Beholder2D
@@ -14,7 +14,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=nicholas
-Date                   :=19/10/26
+Date                   :=16/11/26
 CodeLitePath           :=/home/nicholas/.codelite
 MakeDirCommand         :=mkdir -p
 LinkerName             :=/bin/clang++
@@ -37,7 +37,7 @@ PreprocessOnlySwitch   :=-E
 ObjectsFileList        :=$(IntermediateDirectory)/ObjectsList.txt
 PCHCompileFlags        :=
 LinkOptions            :=  
-IncludePath            :=  $(IncludeSwitch). $(IncludeSwitch)$(HOME)/lib/SDL/include $(IncludeSwitch)$(HOME)/lib/volk $(IncludeSwitch)$(HOME)/lib/VulkanMemoryAllocator/include $(IncludeSwitch)$(HOME)/lib/VulkanSDK/1.4.350.1/x86_64/include $(IncludeSwitch)../../include 
+IncludePath            :=  $(IncludeSwitch). $(IncludeSwitch)$(HOME)/lib/SDL/include $(IncludeSwitch)$(HOME)/lib/imgui $(IncludeSwitch)../../include 
 IncludePCH             := 
 RcIncludePath          := 
 Libs                   := $(LibrarySwitch)SDL3 
