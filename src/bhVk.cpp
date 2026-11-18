@@ -2,14 +2,6 @@
 #include <SDL3/SDL_assert.h>
 #include <SDL3/SDL_vulkan.h>
 
-#include "bhDefines.hpp"
-#include "bhVk.hpp"
-#include "bhVkPipeline.hpp"
-#include "bhMesh.hpp"
-#include "bhUtil.hpp"
-//#include "bhPlatform.hpp"
-#include "bhLog.hpp"
-
 #ifdef SDL_PLATFORM_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -19,6 +11,14 @@
 #include <imgui.h>
 #include <backends/imgui_impl_sdl3.h>
 #include <backends/imgui_impl_vulkan.h>
+
+#include "bhDefines.hpp"
+#include "bhVk.hpp"
+#include "bhVkPipeline.hpp"
+#include "bhMesh.hpp"
+#include "bhUtil.hpp"
+//#include "bhPlatform.hpp"
+#include "bhLog.hpp"
 
 // #include <ktx.h>
 // #include <ktxvulkan.h>
@@ -49,9 +49,6 @@ namespace bhVk
 	};
 
 	////////////////////////////////////////////////////////////////////////////////
-	static constexpr uint8_t BH_IMGUI_FLAG_READY = BH_BIT(0);
-	static constexpr uint8_t BH_IMGUI_FLAG_VISIBLE = BH_BIT(1);
-
 	static std::vector<VkDescriptorImageInfo> g_textureDescriptors;
 
 	int CompareRankedDevice(const void* a, const void* b)
@@ -755,7 +752,7 @@ namespace bhVk
 		{
 			ImGui_ImplVulkan_PipelineInfo pipelineInfoMain = {};
       {
-        pipelineInfoMain.PipelineRenderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR;
+        pipelineInfoMain.PipelineRenderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
       }
 
 			ImGui_ImplVulkan_InitInfo vii = {};
@@ -778,7 +775,7 @@ namespace bhVk
 
 			if (ImGui_ImplVulkan_Init(&vii))
 			{
-				ImGui::StyleColorsDark();
+				//ImGui::StyleColorsDark();
 				return true;
 			}
 		}

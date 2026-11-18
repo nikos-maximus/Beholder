@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Workspace Name="Beholder" Database="" Version="10000">
-  <Project Name="Beholder3D" Path="Beholder3D/Beholder3D.project" Active="Yes"/>
-  <Project Name="Beholder2D" Path="Beholder2D/Beholder2D.project" Active="No"/>
+  <Project Name="Beholder3D" Path="Beholder3D/Beholder3D.project" Active="No"/>
+  <Project Name="Beholder2D" Path="Beholder2D/Beholder2D.project" Active="Yes"/>
   <BuildMatrix>
     <WorkspaceConfiguration Name="Release">
       <Environment/>

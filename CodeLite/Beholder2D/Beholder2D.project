@@ -6,6 +6,15 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
+    <VirtualDirectory Name="thirdparty">
+      <File Name="../../../../lib/imgui/backends/imgui_impl_sdlrenderer3.cpp"/>
+      <File Name="../../../../lib/imgui/backends/imgui_impl_sdl3.cpp"/>
+      <File Name="../../../../lib/imgui/imgui_widgets.cpp"/>
+      <File Name="../../../../lib/imgui/imgui_tables.cpp"/>
+      <File Name="../../../../lib/imgui/imgui_draw.cpp"/>
+      <File Name="../../../../lib/imgui/imgui_demo.cpp"/>
+      <File Name="../../../../lib/imgui/imgui.cpp"/>
+    </VirtualDirectory>
     <File Name="../../src/bhLog.cpp"/>
     <File Name="../../src/bhUtil.cpp"/>
     <File Name="../../src/bhPlatform.cpp"/>

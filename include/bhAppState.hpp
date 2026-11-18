@@ -12,7 +12,7 @@ protected:
 
 public:
   SDL_PropertiesID props { SDL_MAX_UINT32 };
-  SDL_Window* mainWindow { nullptr };
+  SDL_Window* window { nullptr };
   
   void SetImguiReady(bool ready)
   {

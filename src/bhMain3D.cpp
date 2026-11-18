@@ -38,19 +38,19 @@ SDL_AppResult SDL_AppInit(void** appState, int argc, char* argv[])
       bhConfig cfg;
       //bhConfig::Load()
       SDL_PropertiesID props = bhConfig::CreateProperties(cfg);
-      SDL_Window* mainWindow = SDL_CreateWindowWithProperties(props);
-      if (mainWindow)
+      SDL_Window* window = SDL_CreateWindowWithProperties(props);
+      if (window)
       {
-        bhVk::RenderDevice* rd = bhVk::CreateRenderDevice(mainWindow);
+        bhVk::RenderDevice* rd = bhVk::CreateRenderDevice(window);
         if (rd)
         {
           bhApp3DState* newState(new bhApp3DState());
           newState->props = props;
-          newState->mainWindow = mainWindow;
+          newState->window = window;
           newState->renderDev = rd;
           *appState = newState;
           
-          if (rd->InitImGui(mainWindow))
+          if (rd->InitImGui(window))
           {
             newState->SetImguiReady(true);
             newState->SetImguiVisible(true); //DEBUG
@@ -66,7 +66,7 @@ SDL_AppResult SDL_AppInit(void** appState, int argc, char* argv[])
 
           // bhWorld world;
           // int ww, wh;
-          // SDL_GetWindowSize(mainWindow, &ww, &wh);
+          // SDL_GetWindowSize(window, &ww, &wh);
           // bhCamera& cam = world.GetCamera();
           // cam.SetAspect(float(ww) / float(wh));
 
@@ -75,7 +75,7 @@ SDL_AppResult SDL_AppInit(void** appState, int argc, char* argv[])
 
           // DEBUG
 
-          SDL_ShowWindow(mainWindow); //TODO: Error check
+          SDL_ShowWindow(window); //TODO: Error check
           return SDL_APP_CONTINUE;
         }
       }
@@ -142,9 +142,9 @@ void SDL_AppQuit(void *appState, SDL_AppResult result)
     bhVk::DestroyRenderDevice(rd);
   }
 
-  if (state->mainWindow)
+  if (state->window)
   {
-    SDL_DestroyWindow(state->mainWindow);
+    SDL_DestroyWindow(state->window);
   }
 
   bhVk::DestroyInstance();

@@ -5,7 +5,7 @@
 ## Debug
 ProjectName            :=Beholder2D
 ConfigurationName      :=Debug
-WorkspaceConfiguration :=Release
+WorkspaceConfiguration :=Debug
 WorkspacePath          :=/home/nicholas/Projects/Beholder/CodeLite
 ProjectPath            :=/home/nicholas/Projects/Beholder/CodeLite/Beholder2D
 IntermediateDirectory  :=../build-$(WorkspaceConfiguration)/Beholder2D
@@ -14,7 +14,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=nicholas
-Date                   :=16/11/26
+Date                   :=18/11/26
 CodeLitePath           :=/home/nicholas/.codelite
 MakeDirCommand         :=mkdir -p
 LinkerName             :=/bin/clang++
@@ -61,7 +61,8 @@ AS       := /usr/bin/as
 ## User defined environment variables
 ##
 CodeLiteDir:=/usr/share/codelite
-Objects0=$(IntermediateDirectory)/up_up_src_bhConfig.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_up_src_bhPlatform.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_up_src_bhMain2D.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_up_src_bhUtil.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_up_src_bhLog.cpp$(ObjectSuffix) 
+Objects0=$(IntermediateDirectory)/up_up_up_up_lib_imgui_backends_imgui_impl_sdl3.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_tables.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_up_up_up_lib_imgui_backends_imgui_impl_sdlrenderer3.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_demo.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_up_src_bhConfig.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_up_src_bhPlatform.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_widgets.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_up_src_bhMain2D.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_up_src_bhUtil.cpp$(ObjectSuffix) \
+	$(IntermediateDirectory)/up_up_src_bhLog.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_draw.cpp$(ObjectSuffix) 
 
 
 
@@ -92,6 +93,46 @@ PreBuild:
 ##
 ## Objects
 ##
+$(IntermediateDirectory)/up_up_up_up_lib_imgui_backends_imgui_impl_sdl3.cpp$(ObjectSuffix): ../../../../lib/imgui/backends/imgui_impl_sdl3.cpp $(IntermediateDirectory)/up_up_up_up_lib_imgui_backends_imgui_impl_sdl3.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/nicholas/lib/imgui/backends/imgui_impl_sdl3.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_up_up_up_lib_imgui_backends_imgui_impl_sdl3.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/up_up_up_up_lib_imgui_backends_imgui_impl_sdl3.cpp$(DependSuffix): ../../../../lib/imgui/backends/imgui_impl_sdl3.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_up_up_up_lib_imgui_backends_imgui_impl_sdl3.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_up_up_up_lib_imgui_backends_imgui_impl_sdl3.cpp$(DependSuffix) -MM ../../../../lib/imgui/backends/imgui_impl_sdl3.cpp
+
+$(IntermediateDirectory)/up_up_up_up_lib_imgui_backends_imgui_impl_sdl3.cpp$(PreprocessSuffix): ../../../../lib/imgui/backends/imgui_impl_sdl3.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_up_up_up_lib_imgui_backends_imgui_impl_sdl3.cpp$(PreprocessSuffix) ../../../../lib/imgui/backends/imgui_impl_sdl3.cpp
+
+$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_tables.cpp$(ObjectSuffix): ../../../../lib/imgui/imgui_tables.cpp $(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_tables.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/nicholas/lib/imgui/imgui_tables.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_tables.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_tables.cpp$(DependSuffix): ../../../../lib/imgui/imgui_tables.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_tables.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_tables.cpp$(DependSuffix) -MM ../../../../lib/imgui/imgui_tables.cpp
+
+$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_tables.cpp$(PreprocessSuffix): ../../../../lib/imgui/imgui_tables.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_tables.cpp$(PreprocessSuffix) ../../../../lib/imgui/imgui_tables.cpp
+
+$(IntermediateDirectory)/up_up_up_up_lib_imgui_backends_imgui_impl_sdlrenderer3.cpp$(ObjectSuffix): ../../../../lib/imgui/backends/imgui_impl_sdlrenderer3.cpp $(IntermediateDirectory)/up_up_up_up_lib_imgui_backends_imgui_impl_sdlrenderer3.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/nicholas/lib/imgui/backends/imgui_impl_sdlrenderer3.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_up_up_up_lib_imgui_backends_imgui_impl_sdlrenderer3.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/up_up_up_up_lib_imgui_backends_imgui_impl_sdlrenderer3.cpp$(DependSuffix): ../../../../lib/imgui/backends/imgui_impl_sdlrenderer3.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_up_up_up_lib_imgui_backends_imgui_impl_sdlrenderer3.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_up_up_up_lib_imgui_backends_imgui_impl_sdlrenderer3.cpp$(DependSuffix) -MM ../../../../lib/imgui/backends/imgui_impl_sdlrenderer3.cpp
+
+$(IntermediateDirectory)/up_up_up_up_lib_imgui_backends_imgui_impl_sdlrenderer3.cpp$(PreprocessSuffix): ../../../../lib/imgui/backends/imgui_impl_sdlrenderer3.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_up_up_up_lib_imgui_backends_imgui_impl_sdlrenderer3.cpp$(PreprocessSuffix) ../../../../lib/imgui/backends/imgui_impl_sdlrenderer3.cpp
+
+$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_demo.cpp$(ObjectSuffix): ../../../../lib/imgui/imgui_demo.cpp $(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_demo.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/nicholas/lib/imgui/imgui_demo.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_demo.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_demo.cpp$(DependSuffix): ../../../../lib/imgui/imgui_demo.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_demo.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_demo.cpp$(DependSuffix) -MM ../../../../lib/imgui/imgui_demo.cpp
+
+$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_demo.cpp$(PreprocessSuffix): ../../../../lib/imgui/imgui_demo.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_demo.cpp$(PreprocessSuffix) ../../../../lib/imgui/imgui_demo.cpp
+
+$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui.cpp$(ObjectSuffix): ../../../../lib/imgui/imgui.cpp $(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/nicholas/lib/imgui/imgui.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui.cpp$(DependSuffix): ../../../../lib/imgui/imgui.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui.cpp$(DependSuffix) -MM ../../../../lib/imgui/imgui.cpp
+
+$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui.cpp$(PreprocessSuffix): ../../../../lib/imgui/imgui.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui.cpp$(PreprocessSuffix) ../../../../lib/imgui/imgui.cpp
+
 $(IntermediateDirectory)/up_up_src_bhConfig.cpp$(ObjectSuffix): ../../src/bhConfig.cpp $(IntermediateDirectory)/up_up_src_bhConfig.cpp$(DependSuffix)
 	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/nicholas/Projects/Beholder/src/bhConfig.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_up_src_bhConfig.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/up_up_src_bhConfig.cpp$(DependSuffix): ../../src/bhConfig.cpp
@@ -107,6 +148,14 @@ $(IntermediateDirectory)/up_up_src_bhPlatform.cpp$(DependSuffix): ../../src/bhPl
 
 $(IntermediateDirectory)/up_up_src_bhPlatform.cpp$(PreprocessSuffix): ../../src/bhPlatform.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_up_src_bhPlatform.cpp$(PreprocessSuffix) ../../src/bhPlatform.cpp
+
+$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_widgets.cpp$(ObjectSuffix): ../../../../lib/imgui/imgui_widgets.cpp $(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_widgets.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/nicholas/lib/imgui/imgui_widgets.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_widgets.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_widgets.cpp$(DependSuffix): ../../../../lib/imgui/imgui_widgets.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_widgets.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_widgets.cpp$(DependSuffix) -MM ../../../../lib/imgui/imgui_widgets.cpp
+
+$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_widgets.cpp$(PreprocessSuffix): ../../../../lib/imgui/imgui_widgets.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_widgets.cpp$(PreprocessSuffix) ../../../../lib/imgui/imgui_widgets.cpp
 
 $(IntermediateDirectory)/up_up_src_bhMain2D.cpp$(ObjectSuffix): ../../src/bhMain2D.cpp $(IntermediateDirectory)/up_up_src_bhMain2D.cpp$(DependSuffix)
 	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/nicholas/Projects/Beholder/src/bhMain2D.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_up_src_bhMain2D.cpp$(ObjectSuffix) $(IncludePath)
@@ -131,6 +180,14 @@ $(IntermediateDirectory)/up_up_src_bhLog.cpp$(DependSuffix): ../../src/bhLog.cpp
 
 $(IntermediateDirectory)/up_up_src_bhLog.cpp$(PreprocessSuffix): ../../src/bhLog.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_up_src_bhLog.cpp$(PreprocessSuffix) ../../src/bhLog.cpp
+
+$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_draw.cpp$(ObjectSuffix): ../../../../lib/imgui/imgui_draw.cpp $(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_draw.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/nicholas/lib/imgui/imgui_draw.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_draw.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_draw.cpp$(DependSuffix): ../../../../lib/imgui/imgui_draw.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_draw.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_draw.cpp$(DependSuffix) -MM ../../../../lib/imgui/imgui_draw.cpp
+
+$(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_draw.cpp$(PreprocessSuffix): ../../../../lib/imgui/imgui_draw.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_up_up_up_lib_imgui_imgui_draw.cpp$(PreprocessSuffix) ../../../../lib/imgui/imgui_draw.cpp
 
 
 -include $(IntermediateDirectory)/*$(DependSuffix)
