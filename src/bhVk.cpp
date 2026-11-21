@@ -23,6 +23,8 @@
 // #include <ktx.h>
 // #include <ktxvulkan.h>
 
+static_assert(VK_VERSION_1_3);
+
 namespace bhVk
 {
 	static constexpr uint32_t BH_VK_API_VERSION = VK_API_VERSION_1_3;
@@ -611,7 +613,8 @@ namespace bhVk
 			colorAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
 			colorAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 			colorAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-			colorAttachmentInfo.clearValue = { 1.0f, 0.0f, 1.0f, 1.0f };
+      
+			colorAttachmentInfo.clearValue.color = { { 1.0f, 0.0f, 1.0f, 1.0f } };
 		}
 
 		VkRenderingAttachmentInfo depthStencilAttachmentInfo{ VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO };
@@ -620,10 +623,11 @@ namespace bhVk
 			depthStencilAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
 			depthStencilAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 			depthStencilAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-			depthStencilAttachmentInfo.clearValue = { 1.0f, 0.0f };
+      
+			depthStencilAttachmentInfo.clearValue.depthStencil.depth = 1.0f;
+      depthStencilAttachmentInfo.clearValue.depthStencil.stencil = 0;
 		}
 
-		VkRenderingInfo renderInfo{ VK_STRUCTURE_TYPE_RENDERING_INFO };
 		{
 			renderInfo.renderArea.offset = {};
 			//renderInfo.renderArea.extent.width = ww;
@@ -634,6 +638,7 @@ namespace bhVk
 			renderInfo.pColorAttachments = &colorAttachmentInfo;
 			renderInfo.pDepthAttachment = &depthStencilAttachmentInfo;
 		}
+    
 		vkCmdBeginRendering(currCB, &renderInfo);
 
 		VkViewport vp{};
@@ -744,15 +749,23 @@ namespace bhVk
 	{
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO();
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+		//ImGuiIO& io = ImGui::GetIO();
+		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
 
 		if (ImGui_ImplSDL3_InitForVulkan(window))
 		{
+      VkPipelineRenderingCreateInfo pipelineRenderingCI = { VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO };
+      {
+        pipelineRenderingCI.colorAttachmentCount = 1;
+        pipelineRenderingCI.pColorAttachmentFormats = &g_presentImageFormat;
+        //pipelineRenderingCI.depthAttachmentFormat = ;
+        //pipelineRenderingCI.stencilAttachmentFormat = ;
+      }
+      
 			ImGui_ImplVulkan_PipelineInfo pipelineInfoMain = {};
       {
-        pipelineInfoMain.PipelineRenderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+        pipelineInfoMain.PipelineRenderingCreateInfo = pipelineRenderingCI;
       }
 
 			ImGui_ImplVulkan_InitInfo vii = {};

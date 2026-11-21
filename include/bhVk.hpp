@@ -130,6 +130,8 @@ namespace bhVk
 
     VkDescriptorPool descPool { VK_NULL_HANDLE };
     VkExtent2D windowSiz{};
+    
+    VkRenderingInfo renderInfo{ VK_STRUCTURE_TYPE_RENDERING_INFO };
   };
 
   ////////////////////////////////////////////////////////////////////////////////
